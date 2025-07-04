@@ -24,8 +24,9 @@ end
 function plant_sapling(sapling)
     has_block, data = turtle.inspect()
     if not has_block or data.name ~= sapling then
-        select_item(sapling)
-        turtle.place()
+        if select_item(sapling) then
+            turtle.place()
+        end
     end
 end
 
