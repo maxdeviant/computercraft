@@ -43,7 +43,16 @@ function select_item(item)
 end
 
 function move_to_ground()
-    while not turtle.detectDown() do
+    while true do
+        local has_block, data = turtle.inspectDown()
+        if has_block then
+            if data.name == track_kind then
+                break
+            else
+                turtle.digDown()
+            end
+        end
+
         turtle.down()
     end
 end
