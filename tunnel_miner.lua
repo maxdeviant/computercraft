@@ -1,33 +1,12 @@
-torch = "minecraft:torch"
-tunnel_width = 3
-tunnel_height = 3
-torch_spacing = 5
+local inventory = require("lib/inventory")
 
-function has_item(item)
-    for i = 1,16 do
-        it = turtle.getItemDetail(i)
-        if it and it.name == item then
-            return true
-        end
-    end
+local torch = "minecraft:torch"
+local tunnel_width = 3
+local tunnel_height = 3
+local torch_spacing = 5
 
-    return false
-end
-
-function select_item(item)
-    for i = 1,16 do
-        turtle.select(i)
-        it = turtle.getItemDetail()
-        if it and it.name == item then
-            return true
-        end
-    end
-
-    return false
-end
-
-function place_torch(height)
-    if not select_item(torch) then
+local function place_torch(height)
+    if not inventory.select_item(torch) then
         return false
     end
 
@@ -44,10 +23,10 @@ function place_torch(height)
     return true
 end
 
--- Mines a column of the specified height in front of the turtle.
---
--- Will return down to the starting location, once finished.
-function mine_column(height)
+--- Mines a column of the specified height in front of the turtle.
+---
+--- Will return down to the starting location, once finished.
+local function mine_column(height)
     for _ = 1,height - 1 do
         turtle.dig()
         turtle.digUp()
@@ -61,7 +40,7 @@ function mine_column(height)
     end
 end
 
-function mine_row(row)
+local function mine_row(row)
     mine_column(tunnel_height)
     turtle.forward()
     turtle.turnLeft()
@@ -88,12 +67,12 @@ function mine_row(row)
     turtle.turnLeft()
 end
 
-function main()
+local function main()
     print("Starting tunnel miner")
 
     local row = 0
     while true do
-        if has_item(torch) then
+        if inventory.has_item(torch) then
             mine_row(row)
             row = row + 1
         else
