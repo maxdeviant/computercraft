@@ -50,6 +50,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "computercraft_tests"
+version = "0.1.0"
+dependencies = [
+ "computercraft_simulator",
+ "indoc",
+ "minecraft",
+ "pretty_assertions",
+]
+
+[[package]]
 name = "diff"
 version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -76,6 +86,12 @@ dependencies = [
  "libc",
  "windows-sys",
 ]
+
+[[package]]
+name = "indoc"
+version = "2.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4c7245a08504955605670dbf141fceab975f15ca21570696aebe9d2e71576bd"
 
 [[package]]
 name = "libc"

@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use minecraft::world::{Direction, Position, World};
@@ -11,11 +12,14 @@ use crate::{Turtle, TurtleKind};
 pub enum SimulatorError {
     #[error("Lua error: {0}")]
     LuaError(#[from] mlua::Error),
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
 }
 
 pub type SimulatorResult<T, E = SimulatorError> = Result<T, E>;
 
 pub struct Simulator {
+    root_dir: PathBuf,
     lua: Lua,
     state: Rc<SimulatorState>,
 }
@@ -25,13 +29,49 @@ impl Simulator {
         let lua = Lua::new();
 
         let mut this = Self {
+            root_dir: PathBuf::new(),
             lua,
             state: Rc::new(SimulatorState::new()),
         };
 
+        this.init_require()?;
         this.init_turtle_api()?;
 
         Ok(this)
+    }
+
+    pub fn turtle(&self) -> std::cell::Ref<'_, Turtle> {
+        self.state.turtle.borrow()
+    }
+
+    pub fn set_root_dir(&mut self, root_dir: impl AsRef<Path>) -> SimulatorResult<()> {
+        self.root_dir = root_dir.as_ref().to_path_buf();
+        self.init_require()
+    }
+
+    fn init_require(&mut self) -> SimulatorResult<()> {
+        let root_dir = self.root_dir.clone();
+        let globals = self.lua.globals();
+
+        globals.set(
+            "require",
+            self.lua.create_function(move |lua, module_name: String| {
+                let module_name_normalized = module_name.replace('.', "/");
+                let file_path = root_dir.join(format!("{module_name_normalized}.lua"));
+                dbg!(&file_path);
+                match std::fs::read_to_string(&file_path) {
+                    Ok(content) => {
+                        let result: mlua::Value<'_> = lua.load(content.as_bytes()).eval()?;
+                        Ok(result)
+                    }
+                    Err(err) => Err(mlua::Error::RuntimeError(format!(
+                        "Module '{module_name}' not found: {err}",
+                    ))),
+                }
+            })?,
+        )?;
+
+        Ok(())
     }
 
     fn init_turtle_api(&mut self) -> SimulatorResult<()> {
@@ -131,6 +171,13 @@ impl Simulator {
         let result = self.lua.load(code).eval()?;
 
         Ok(result)
+    }
+
+    pub fn run_lua_file(&self, path: impl AsRef<Path>) -> SimulatorResult<mlua::Value<'_>> {
+        let path = self.root_dir.join(path);
+        let content = std::fs::read_to_string(path)?;
+
+        self.run_lua(&content)
     }
 }
 

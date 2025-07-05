@@ -6,6 +6,7 @@ members = ["crates/*"]
 computercraft_simulator = { path = "crates/computercraft_simulator" }
 minecraft = { path = "crates/minecraft" }
 
+indoc = "2.0.6"
 mlua = "0.9"
 pretty_assertions = "1.4.1"
 thiserror = "1.0"

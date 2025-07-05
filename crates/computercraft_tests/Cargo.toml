@@ -1,0 +1,11 @@
+[package]
+name = "computercraft_tests"
+version = "0.1.0"
+publish = false
+edition = "2024"
+
+[dev-dependencies]
+computercraft_simulator.workspace = true
+indoc.workspace = true
+minecraft.workspace = true
+pretty_assertions.workspace = true
