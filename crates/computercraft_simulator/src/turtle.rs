@@ -19,6 +19,7 @@ impl TurtleKind {
 #[derive(Debug)]
 pub struct Turtle {
     pub position: Position,
+    pub position_history: Vec<Position>,
     pub direction: Direction,
     pub kind: TurtleKind,
     pub fuel: u32,
@@ -34,6 +35,7 @@ impl Turtle {
     pub fn new(position: Position, direction: Direction, kind: TurtleKind) -> Self {
         Self {
             position,
+            position_history: vec![position],
             direction,
             kind,
             fuel: kind.fuel_limit(),
@@ -42,6 +44,11 @@ impl Turtle {
             left_upgrade: None,
             right_upgrade: None,
         }
+    }
+
+    fn set_position(&mut self, position: Position) {
+        self.position = position;
+        self.position_history.push(position);
     }
 
     pub fn forward(&mut self, world: &mut World) -> TurtleResult {
@@ -55,7 +62,7 @@ impl Turtle {
             return (false, Some("Out of fuel".to_string()));
         }
 
-        self.position = target_position;
+        self.set_position(target_position);
         self.fuel = self.fuel.saturating_sub(1);
         (true, None)
     }
@@ -71,7 +78,7 @@ impl Turtle {
             return (false, Some("Out of fuel".to_string()));
         }
 
-        self.position = target_position;
+        self.set_position(target_position);
         self.fuel = self.fuel.saturating_sub(1);
         (true, None)
     }
@@ -87,7 +94,7 @@ impl Turtle {
             return (false, Some("Out of fuel".to_string()));
         }
 
-        self.position = target_position;
+        self.set_position(target_position);
         self.fuel = self.fuel.saturating_sub(1);
         (true, None)
     }
@@ -103,7 +110,7 @@ impl Turtle {
             return (false, Some("Out of fuel".to_string()));
         }
 
-        self.position = target_position;
+        self.set_position(target_position);
         self.fuel = self.fuel.saturating_sub(1);
         (true, None)
     }
