@@ -1,3 +1,18 @@
+#
+# ComputerCraft
+#
+
+# Keep it secret. Keep it safe.
 .env
+
+#
+# Rust
+#
+
+/target
+
+#
+# macOS
+#
 
 .DS_Store
