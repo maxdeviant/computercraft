@@ -95,6 +95,32 @@ impl Simulator {
                 }
             })?,
         )?;
+        turtle_table.set(
+            "turnLeft",
+            self.lua.create_function({
+                let state = self.state.clone();
+                move |_lua, ()| {
+                    let mut turtle = state.turtle.borrow_mut();
+
+                    let (success, err) = turtle.turn_left();
+
+                    Ok((success, err))
+                }
+            })?,
+        )?;
+        turtle_table.set(
+            "turnRight",
+            self.lua.create_function({
+                let state = self.state.clone();
+                move |_lua, ()| {
+                    let mut turtle = state.turtle.borrow_mut();
+
+                    let (success, err) = turtle.turn_right();
+
+                    Ok((success, err))
+                }
+            })?,
+        )?;
 
         globals.set("turtle", turtle_table)?;
 
@@ -158,6 +184,24 @@ mod tests {
         assert_eq!(
             simulator.state.turtle.borrow().position,
             Position::new(0, 0, 0)
+        );
+
+        simulator.run_lua("turtle.turnRight()").unwrap();
+        assert_eq!(simulator.state.turtle.borrow().direction, Direction::East);
+
+        simulator.run_lua("turtle.forward()").unwrap();
+        assert_eq!(
+            simulator.state.turtle.borrow().position,
+            Position::new(1, 0, 0)
+        );
+
+        simulator.run_lua("turtle.turnLeft()").unwrap();
+        assert_eq!(simulator.state.turtle.borrow().direction, Direction::North);
+
+        simulator.run_lua("turtle.forward()").unwrap();
+        assert_eq!(
+            simulator.state.turtle.borrow().position,
+            Position::new(1, 0, -1)
         );
     }
 }
