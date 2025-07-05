@@ -1,5 +1,6 @@
 use minecraft::world::{Direction, Position, World};
 use minecraft::{Block, ItemStack};
+use thiserror::Error;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TurtleKind {
@@ -16,6 +17,14 @@ impl TurtleKind {
     }
 }
 
+#[derive(Error, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TurtleMoveError {
+    #[error("Movement obstructed")]
+    Obstructed,
+    #[error("Out of fuel")]
+    OutOfFuel,
+}
+
 #[derive(Debug)]
 pub struct Turtle {
     pub position: Position,
@@ -28,8 +37,6 @@ pub struct Turtle {
     pub left_upgrade: Option<String>,
     pub right_upgrade: Option<String>,
 }
-
-pub type TurtleResult = (bool, Option<String>);
 
 impl Turtle {
     pub fn new(position: Position, direction: Direction, kind: TurtleKind) -> Self {
@@ -51,78 +58,80 @@ impl Turtle {
         self.position_history.push(position);
     }
 
-    pub fn forward(&mut self, world: &mut World) -> TurtleResult {
+    pub fn forward(&mut self, world: &mut World) -> Result<(), TurtleMoveError> {
         let target_position = self.position.forward(self.direction);
 
         if world.is_solid(target_position) {
-            return (false, Some("Movement obstructed".to_string()));
+            return Err(TurtleMoveError::Obstructed);
         }
 
         if self.fuel == 0 {
-            return (false, Some("Out of fuel".to_string()));
+            return Err(TurtleMoveError::OutOfFuel);
         }
 
         self.set_position(target_position);
         self.fuel = self.fuel.saturating_sub(1);
-        (true, None)
+
+        Ok(())
     }
 
-    pub fn back(&mut self, world: &mut World) -> TurtleResult {
+    pub fn back(&mut self, world: &mut World) -> Result<(), TurtleMoveError> {
         let target_position = self.position.back(self.direction);
 
         if world.is_solid(target_position) {
-            return (false, Some("Movement obstructed".to_string()));
+            return Err(TurtleMoveError::Obstructed);
         }
 
         if self.fuel == 0 {
-            return (false, Some("Out of fuel".to_string()));
+            return Err(TurtleMoveError::OutOfFuel);
         }
 
         self.set_position(target_position);
         self.fuel = self.fuel.saturating_sub(1);
-        (true, None)
+
+        Ok(())
     }
 
-    pub fn up(&mut self, world: &mut World) -> TurtleResult {
+    pub fn up(&mut self, world: &mut World) -> Result<(), TurtleMoveError> {
         let target_position = self.position.up();
 
         if world.is_solid(target_position) {
-            return (false, Some("Movement obstructed".to_string()));
+            return Err(TurtleMoveError::Obstructed);
         }
 
         if self.fuel == 0 {
-            return (false, Some("Out of fuel".to_string()));
+            return Err(TurtleMoveError::OutOfFuel);
         }
 
         self.set_position(target_position);
         self.fuel = self.fuel.saturating_sub(1);
-        (true, None)
+
+        Ok(())
     }
 
-    pub fn down(&mut self, world: &mut World) -> TurtleResult {
+    pub fn down(&mut self, world: &mut World) -> Result<(), TurtleMoveError> {
         let target_position = self.position.down();
 
         if world.is_solid(target_position) {
-            return (false, Some("Movement obstructed".to_string()));
+            return Err(TurtleMoveError::Obstructed);
         }
 
         if self.fuel == 0 {
-            return (false, Some("Out of fuel".to_string()));
+            return Err(TurtleMoveError::OutOfFuel);
         }
 
         self.set_position(target_position);
         self.fuel = self.fuel.saturating_sub(1);
-        (true, None)
+
+        Ok(())
     }
 
-    pub fn turn_left(&mut self) -> TurtleResult {
+    pub fn turn_left(&mut self) {
         self.direction = self.direction.turn_left();
-        (true, None)
     }
 
-    pub fn turn_right(&mut self) -> TurtleResult {
+    pub fn turn_right(&mut self) {
         self.direction = self.direction.turn_right();
-        (true, None)
     }
 
     pub fn detect(&self, world: &World) -> bool {
@@ -140,7 +149,7 @@ impl Turtle {
         world.is_solid(target_position)
     }
 
-    pub fn dig(&mut self, world: &mut World) -> TurtleResult {
+    pub fn dig(&mut self, world: &mut World) -> (bool, Option<String>) {
         let target_position = self.position.forward(self.direction);
 
         if !world.can_dig(target_position) {
@@ -156,7 +165,7 @@ impl Turtle {
         (true, None)
     }
 
-    pub fn dig_up(&mut self, world: &mut World) -> TurtleResult {
+    pub fn dig_up(&mut self, world: &mut World) -> (bool, Option<String>) {
         let target_position = self.position.up();
 
         if !world.can_dig(target_position) {
@@ -172,7 +181,7 @@ impl Turtle {
         (true, None)
     }
 
-    pub fn dig_down(&mut self, world: &mut World) -> TurtleResult {
+    pub fn dig_down(&mut self, world: &mut World) -> (bool, Option<String>) {
         let target_position = self.position.down();
 
         if !world.can_dig(target_position) {
@@ -200,7 +209,7 @@ impl Turtle {
         self.selected_slot
     }
 
-    pub fn select(&mut self, slot: usize) -> TurtleResult {
+    pub fn select(&mut self, slot: usize) -> (bool, Option<String>) {
         if slot >= 16 {
             return (false, Some("Slot out of range".to_string()));
         }
@@ -236,16 +245,18 @@ impl Turtle {
 
 #[cfg(test)]
 mod tests {
+    use pretty_assertions::assert_eq;
+
     use super::*;
 
     #[test]
     fn test_direction_turns() {
-        let mut dir = Direction::North;
-        dir = dir.turn_right();
+        let dir = Direction::North;
+        let dir = dir.turn_right();
         assert_eq!(dir, Direction::East);
-        dir = dir.turn_right();
+        let dir = dir.turn_right();
         assert_eq!(dir, Direction::South);
-        dir = dir.turn_left();
+        let dir = dir.turn_left();
         assert_eq!(dir, Direction::East);
     }
 
@@ -264,16 +275,13 @@ mod tests {
         let mut world = World::new();
         let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleKind::Normal);
 
-        let (success, _) = turtle.forward(&mut world);
-        assert!(success);
+        turtle.forward(&mut world).unwrap();
         assert_eq!(turtle.position, Position::new(0, 0, -1));
 
-        let (success, _) = turtle.turn_right();
-        assert!(success);
+        turtle.turn_right();
         assert_eq!(turtle.direction, Direction::East);
 
-        let (success, _) = turtle.forward(&mut world);
-        assert!(success);
+        turtle.forward(&mut world).unwrap();
         assert_eq!(turtle.position, Position::new(1, 0, -1));
     }
 
@@ -284,9 +292,8 @@ mod tests {
 
         let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleKind::Normal);
 
-        let (success, error) = turtle.forward(&mut world);
-        assert!(!success);
-        assert!(error.is_some());
+        let result = turtle.forward(&mut world);
+        assert_eq!(result, Err(TurtleMoveError::Obstructed));
         assert_eq!(turtle.position, Position::new(0, 0, 0));
     }
 
@@ -296,7 +303,7 @@ mod tests {
         let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleKind::Normal);
 
         let initial_fuel = turtle.get_fuel_level();
-        turtle.forward(&mut world);
+        turtle.forward(&mut world).unwrap();
         assert_eq!(turtle.get_fuel_level(), initial_fuel - 1);
     }
 
@@ -306,9 +313,8 @@ mod tests {
         let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleKind::Normal);
         turtle.fuel = 0;
 
-        let (success, error) = turtle.forward(&mut world);
-        assert!(!success);
-        assert_eq!(error, Some("Out of fuel".to_string()));
+        let result = turtle.forward(&mut world);
+        assert_eq!(result, Err(TurtleMoveError::OutOfFuel));
     }
 
     #[test]

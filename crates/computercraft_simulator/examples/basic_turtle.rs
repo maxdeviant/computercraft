@@ -1,4 +1,4 @@
-use computercraft_simulator::{Turtle, TurtleKind};
+use computercraft_simulator::{Turtle, TurtleKind, TurtleResultExt};
 use minecraft::Block;
 use minecraft::world::{Direction, Position, World};
 
@@ -26,7 +26,7 @@ fn main() {
 
     // Move forward
     println!("\n--- Moving forward ---");
-    let (success, error) = turtle.forward(&mut world);
+    let (success, error) = turtle.forward(&mut world).to_lua_result();
     if success {
         println!("✓ Moved forward to {:?}", turtle.position);
     } else {
@@ -38,7 +38,7 @@ fn main() {
 
     // Try to move forward again (should hit the stone block)
     println!("\n--- Moving forward again (should hit stone) ---");
-    let (success, error) = turtle.forward(&mut world);
+    let (success, error) = turtle.forward(&mut world).to_lua_result();
     if success {
         println!("✓ Moved forward to {:?}", turtle.position);
     } else {
@@ -70,7 +70,7 @@ fn main() {
 
     // Try to move forward again (should succeed now)
     println!("\n--- Moving forward after digging ---");
-    let (success, error) = turtle.forward(&mut world);
+    let (success, error) = turtle.forward(&mut world).to_lua_result();
     if success {
         println!("✓ Moved forward to {:?}", turtle.position);
     } else {
@@ -82,12 +82,10 @@ fn main() {
 
     // Turn right and move
     println!("\n--- Turning right and moving ---");
-    let (success, _) = turtle.turn_right();
-    if success {
-        println!("✓ Turned right, now facing {:?}", turtle.direction);
-    }
+    turtle.turn_right();
+    println!("✓ Turned right, now facing {:?}", turtle.direction);
 
-    let (success, error) = turtle.forward(&mut world);
+    let (success, error) = turtle.forward(&mut world).to_lua_result();
     if success {
         println!("✓ Moved forward to {:?}", turtle.position);
     } else {
@@ -133,7 +131,7 @@ fn main() {
 
     // Try to move up
     println!("\n--- Moving up ---");
-    let (success, error) = turtle.up(&mut world);
+    let (success, error) = turtle.up(&mut world).to_lua_result();
     if success {
         println!("✓ Moved up to {:?}", turtle.position);
     } else {

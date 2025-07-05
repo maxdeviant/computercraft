@@ -6,7 +6,7 @@ use minecraft::world::{Direction, Position, World};
 use mlua::Lua;
 use thiserror::Error;
 
-use crate::{Turtle, TurtleKind};
+use crate::{Turtle, TurtleKind, TurtleMoveError};
 
 #[derive(Error, Debug)]
 pub enum SimulatorError {
@@ -86,9 +86,7 @@ impl Simulator {
                     let mut turtle = state.turtle.borrow_mut();
                     let mut world = state.world.borrow_mut();
 
-                    let (success, err) = turtle.forward(&mut world);
-
-                    Ok((success, err))
+                    Ok(turtle.forward(&mut world).to_lua_result())
                 }
             })?,
         )?;
@@ -100,9 +98,7 @@ impl Simulator {
                     let mut turtle = state.turtle.borrow_mut();
                     let mut world = state.world.borrow_mut();
 
-                    let (success, err) = turtle.back(&mut world);
-
-                    Ok((success, err))
+                    Ok(turtle.back(&mut world).to_lua_result())
                 }
             })?,
         )?;
@@ -114,9 +110,7 @@ impl Simulator {
                     let mut turtle = state.turtle.borrow_mut();
                     let mut world = state.world.borrow_mut();
 
-                    let (success, err) = turtle.up(&mut world);
-
-                    Ok((success, err))
+                    Ok(turtle.up(&mut world).to_lua_result())
                 }
             })?,
         )?;
@@ -128,9 +122,7 @@ impl Simulator {
                     let mut turtle = state.turtle.borrow_mut();
                     let mut world = state.world.borrow_mut();
 
-                    let (success, err) = turtle.down(&mut world);
-
-                    Ok((success, err))
+                    Ok(turtle.down(&mut world).to_lua_result())
                 }
             })?,
         )?;
@@ -141,9 +133,9 @@ impl Simulator {
                 move |_lua, ()| {
                     let mut turtle = state.turtle.borrow_mut();
 
-                    let (success, err) = turtle.turn_left();
+                    turtle.turn_left();
 
-                    Ok((success, err))
+                    Ok((true, None::<String>))
                 }
             })?,
         )?;
@@ -154,9 +146,9 @@ impl Simulator {
                 move |_lua, ()| {
                     let mut turtle = state.turtle.borrow_mut();
 
-                    let (success, err) = turtle.turn_right();
+                    turtle.turn_right();
 
-                    Ok((success, err))
+                    Ok((true, None::<String>))
                 }
             })?,
         )?;
@@ -177,6 +169,19 @@ impl Simulator {
         let content = std::fs::read_to_string(path)?;
 
         self.run_lua(&content)
+    }
+}
+
+pub trait TurtleResultExt {
+    fn to_lua_result(self) -> (bool, Option<String>);
+}
+
+impl<T> TurtleResultExt for Result<T, TurtleMoveError> {
+    fn to_lua_result(self) -> (bool, Option<String>) {
+        match self {
+            Ok(_) => (true, None),
+            Err(err) => (false, Some(err.to_string())),
+        }
     }
 }
 
