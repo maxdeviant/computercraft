@@ -1,8 +1,7 @@
 [package]
-name = "computercraft_simulator"
+name = "minecraft"
 version = "0.1.0"
 publish = false
 edition = "2024"
 
 [dependencies]
-minecraft.workspace = true

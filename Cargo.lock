@@ -5,3 +5,10 @@ version = 4
 [[package]]
 name = "computercraft_simulator"
 version = "0.1.0"
+dependencies = [
+ "minecraft",
+]
+
+[[package]]
+name = "minecraft"
+version = "0.1.0"

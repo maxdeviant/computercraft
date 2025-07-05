@@ -1,4 +1,6 @@
-use computercraft_simulator::{Block, Direction, Position, Turtle, TurtleType, World};
+use computercraft_simulator::{Turtle, TurtleType};
+use minecraft::Block;
+use minecraft::world::{Direction, Position, World};
 
 fn main() {
     // Create a new world
