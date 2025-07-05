@@ -58,7 +58,7 @@ impl Turtle {
         self.position_history.push(position);
     }
 
-    pub fn forward(&mut self, world: &mut World) -> Result<(), TurtleMoveError> {
+    pub fn forward(&mut self, world: &World) -> Result<(), TurtleMoveError> {
         let target_position = self.position.forward(self.direction);
 
         if world.is_solid(target_position) {
@@ -75,7 +75,7 @@ impl Turtle {
         Ok(())
     }
 
-    pub fn back(&mut self, world: &mut World) -> Result<(), TurtleMoveError> {
+    pub fn back(&mut self, world: &World) -> Result<(), TurtleMoveError> {
         let target_position = self.position.back(self.direction);
 
         if world.is_solid(target_position) {
@@ -92,7 +92,7 @@ impl Turtle {
         Ok(())
     }
 
-    pub fn up(&mut self, world: &mut World) -> Result<(), TurtleMoveError> {
+    pub fn up(&mut self, world: &World) -> Result<(), TurtleMoveError> {
         let target_position = self.position.up();
 
         if world.is_solid(target_position) {
@@ -109,7 +109,7 @@ impl Turtle {
         Ok(())
     }
 
-    pub fn down(&mut self, world: &mut World) -> Result<(), TurtleMoveError> {
+    pub fn down(&mut self, world: &World) -> Result<(), TurtleMoveError> {
         let target_position = self.position.down();
 
         if world.is_solid(target_position) {

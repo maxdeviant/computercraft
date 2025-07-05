@@ -84,9 +84,9 @@ impl Simulator {
                 let state = self.state.clone();
                 move |_lua, ()| {
                     let mut turtle = state.turtle.borrow_mut();
-                    let mut world = state.world.borrow_mut();
+                    let world = state.world.borrow();
 
-                    Ok(turtle.forward(&mut world).to_lua_result())
+                    Ok(turtle.forward(&world).to_lua_result())
                 }
             })?,
         )?;
@@ -96,9 +96,9 @@ impl Simulator {
                 let state = self.state.clone();
                 move |_lua, ()| {
                     let mut turtle = state.turtle.borrow_mut();
-                    let mut world = state.world.borrow_mut();
+                    let world = state.world.borrow();
 
-                    Ok(turtle.back(&mut world).to_lua_result())
+                    Ok(turtle.back(&world).to_lua_result())
                 }
             })?,
         )?;
@@ -108,9 +108,9 @@ impl Simulator {
                 let state = self.state.clone();
                 move |_lua, ()| {
                     let mut turtle = state.turtle.borrow_mut();
-                    let mut world = state.world.borrow_mut();
+                    let world = state.world.borrow();
 
-                    Ok(turtle.up(&mut world).to_lua_result())
+                    Ok(turtle.up(&world).to_lua_result())
                 }
             })?,
         )?;
@@ -120,9 +120,9 @@ impl Simulator {
                 let state = self.state.clone();
                 move |_lua, ()| {
                     let mut turtle = state.turtle.borrow_mut();
-                    let mut world = state.world.borrow_mut();
+                    let world = state.world.borrow();
 
-                    Ok(turtle.down(&mut world).to_lua_result())
+                    Ok(turtle.down(&world).to_lua_result())
                 }
             })?,
         )?;
