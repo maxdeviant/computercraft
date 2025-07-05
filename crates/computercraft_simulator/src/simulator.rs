@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
+use minecraft::Block;
 use minecraft::world::{Direction, Position, World};
 use mlua::Lua;
 use thiserror::Error;
@@ -44,6 +45,12 @@ impl Simulator {
 
     pub fn set_current_dir(&mut self, root_dir: impl AsRef<Path>) {
         *self.state.current_dir.borrow_mut() = root_dir.as_ref().to_path_buf();
+    }
+
+    /// Sets the block at the given position.
+    pub fn set_block_at(&self, position: Position, block: Block) {
+        let mut world = self.state.world.borrow_mut();
+        world.set_block(position, block);
     }
 
     fn init_require(&mut self) -> SimulatorResult<()> {
@@ -239,6 +246,7 @@ impl SimulatorState {
 
 #[cfg(test)]
 mod tests {
+    use minecraft::Block;
     use pretty_assertions::assert_eq;
 
     use super::*;
@@ -294,33 +302,18 @@ mod tests {
     fn test_turtle_dig() {
         let simulator = Simulator::new().unwrap();
 
-        simulator
-            .state
-            .world
-            .borrow_mut()
-            .set_block(simulator.turtle().looking_at(), minecraft::Block::Air);
-
+        simulator.set_block_at(simulator.turtle().looking_at(), Block::Air);
         let result: (bool, Option<String>) = simulator.eval_lua("turtle.dig()").unwrap();
         assert_eq!(result, (false, Some("Nothing to dig here".to_string())));
 
-        simulator
-            .state
-            .world
-            .borrow_mut()
-            .set_block(simulator.turtle().looking_at(), minecraft::Block::Bedrock);
-
+        simulator.set_block_at(simulator.turtle().looking_at(), Block::Bedrock);
         let result: (bool, Option<String>) = simulator.eval_lua("turtle.dig()").unwrap();
         assert_eq!(
             result,
             (false, Some("Cannot break unbreakable block".to_string()))
         );
 
-        simulator
-            .state
-            .world
-            .borrow_mut()
-            .set_block(simulator.turtle().looking_at(), minecraft::Block::Stone);
-
+        simulator.set_block_at(simulator.turtle().looking_at(), Block::Stone);
         let result: (bool, Option<String>) = simulator.eval_lua("turtle.dig()").unwrap();
         assert_eq!(result, (true, None));
     }
