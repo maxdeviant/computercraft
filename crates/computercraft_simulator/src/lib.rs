@@ -1,5 +1,9 @@
+mod simulator;
+
 use minecraft::world::{Direction, Position, World};
 use minecraft::{Block, ItemStack};
+
+pub use crate::simulator::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TurtleType {

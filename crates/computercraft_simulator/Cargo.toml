@@ -6,3 +6,8 @@ edition = "2024"
 
 [dependencies]
 minecraft.workspace = true
+mlua = { workspace = true, features = ["lua52", "vendored"] }
+thiserror.workspace = true
+
+[dev-dependencies]
+pretty_assertions.workspace = true
