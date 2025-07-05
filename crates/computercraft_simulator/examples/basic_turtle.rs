@@ -1,4 +1,4 @@
-use computercraft_simulator::{Turtle, TurtleType};
+use computercraft_simulator::{Turtle, TurtleKind};
 use minecraft::Block;
 use minecraft::world::{Direction, Position, World};
 
@@ -13,7 +13,7 @@ fn main() {
     world.set_block(Position::new(0, 1, -1), Block::Cobblestone);
 
     // Create a turtle at origin facing north
-    let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleType::Normal);
+    let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleKind::Normal);
 
     println!("Starting turtle simulation...");
     println!("Turtle position: {:?}", turtle.position);

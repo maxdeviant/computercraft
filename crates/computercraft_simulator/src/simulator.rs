@@ -5,7 +5,7 @@ use minecraft::world::{Direction, Position, World};
 use mlua::Lua;
 use thiserror::Error;
 
-use crate::{Turtle, TurtleType};
+use crate::{Turtle, TurtleKind};
 
 #[derive(Error, Debug)]
 pub enum SimulatorError {
@@ -146,7 +146,7 @@ impl SimulatorState {
             turtle: RefCell::new(Turtle::new(
                 Position::new(0, 0, 0),
                 Direction::North,
-                TurtleType::Advanced,
+                TurtleKind::Advanced,
             )),
         }
     }

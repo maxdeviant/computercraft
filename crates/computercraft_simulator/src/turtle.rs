@@ -2,16 +2,16 @@ use minecraft::world::{Direction, Position, World};
 use minecraft::{Block, ItemStack};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TurtleType {
+pub enum TurtleKind {
     Normal,
     Advanced,
 }
 
-impl TurtleType {
+impl TurtleKind {
     pub fn fuel_limit(&self) -> u32 {
         match self {
-            TurtleType::Normal => 20_000,
-            TurtleType::Advanced => 100_000,
+            TurtleKind::Normal => 20_000,
+            TurtleKind::Advanced => 100_000,
         }
     }
 }
@@ -20,7 +20,7 @@ impl TurtleType {
 pub struct Turtle {
     pub position: Position,
     pub direction: Direction,
-    pub turtle_type: TurtleType,
+    pub kind: TurtleKind,
     pub fuel: u32,
     pub inventory: [Option<ItemStack>; 16],
     pub selected_slot: usize,
@@ -31,12 +31,12 @@ pub struct Turtle {
 pub type TurtleResult = (bool, Option<String>);
 
 impl Turtle {
-    pub fn new(position: Position, direction: Direction, turtle_type: TurtleType) -> Self {
+    pub fn new(position: Position, direction: Direction, kind: TurtleKind) -> Self {
         Self {
             position,
             direction,
-            turtle_type,
-            fuel: turtle_type.fuel_limit(),
+            kind,
+            fuel: kind.fuel_limit(),
             inventory: Default::default(),
             selected_slot: 0,
             left_upgrade: None,
@@ -186,7 +186,7 @@ impl Turtle {
     }
 
     pub fn get_fuel_limit(&self) -> u32 {
-        self.turtle_type.fuel_limit()
+        self.kind.fuel_limit()
     }
 
     pub fn get_selected_slot(&self) -> usize {
@@ -255,7 +255,7 @@ mod tests {
     #[test]
     fn test_turtle_basic_movement() {
         let mut world = World::new();
-        let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleType::Normal);
+        let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleKind::Normal);
 
         let (success, _) = turtle.forward(&mut world);
         assert!(success);
@@ -275,7 +275,7 @@ mod tests {
         let mut world = World::new();
         world.set_block(Position::new(0, 0, -1), Block::Stone);
 
-        let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleType::Normal);
+        let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleKind::Normal);
 
         let (success, error) = turtle.forward(&mut world);
         assert!(!success);
@@ -286,7 +286,7 @@ mod tests {
     #[test]
     fn test_turtle_fuel_consumption() {
         let mut world = World::new();
-        let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleType::Normal);
+        let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleKind::Normal);
 
         let initial_fuel = turtle.get_fuel_level();
         turtle.forward(&mut world);
@@ -296,7 +296,7 @@ mod tests {
     #[test]
     fn test_turtle_out_of_fuel() {
         let mut world = World::new();
-        let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleType::Normal);
+        let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleKind::Normal);
         turtle.fuel = 0;
 
         let (success, error) = turtle.forward(&mut world);
@@ -309,7 +309,7 @@ mod tests {
         let mut world = World::new();
         world.set_block(Position::new(0, 0, -1), Block::Stone);
 
-        let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleType::Normal);
+        let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleKind::Normal);
 
         assert!(turtle.detect(&world));
 
