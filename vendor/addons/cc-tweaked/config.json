@@ -1,0 +1,17 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/LLS-Addons/main/schemas/addon_config.schema.json",
+  "name": "CC: Tweaked",
+  "words": [
+    "turtle%.%w+",
+    "rednet%.%w+",
+    "redstone%.%w+",
+    "computercraft"
+  ],
+  "settings": {
+    "Lua.runtime.version": "Lua 5.3",
+    "Lua.runtime.builtin": {
+      "io": "disable",
+      "os": "disable"
+    }
+  }
+}

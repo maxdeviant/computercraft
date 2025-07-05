@@ -1,0 +1,19 @@
+---@alias ccTweaked.http.Request.method
+---| '"GET"'
+---| '"HEAD"'
+---| '"POST"'
+---| '"PUT"'
+---| '"DELETE"'
+---| '"CONNECT"'
+---| '"OPTIONS"'
+---| '"TRACE"'
+---| '"PATCH"'
+
+---@class ccTweaked.http.Request
+---@field url string
+---@field method ccTweaked.http.Request.method? Defaults to GET
+---@field headers table<string, string>?
+---@field body string?
+---@field binary boolean?
+---@field redirect boolean? Whether redirects should be followed
+---@field timeout integer? Connection timeout in seconds
