@@ -1,4 +1,4 @@
-local inventory = require "lib.inventory"
+local inventory = require("lib.inventory")
 
 local log_kind = "minecraft:birch_log"
 local sapling_kind = "minecraft:birch_sapling"
@@ -52,7 +52,7 @@ local function move_to_next_tree()
 
     turtle.turnRight()
 
-    for i = 1,tree_spacing do
+    for i = 1, tree_spacing do
         turtle.forward()
         turtle.suck()
 
@@ -68,7 +68,6 @@ local function move_to_next_tree()
 
             return
         end
-
     end
 
     turtle.turnLeft()

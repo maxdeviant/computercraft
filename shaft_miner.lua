@@ -1,7 +1,7 @@
-local move = require "lib.move"
+local move = require("lib.move")
 
 local function mine_shaft(depth, size)
-    for _ = 1,depth do
+    for _ = 1, depth do
         turtle.digDown()
         turtle.down()
         move.traverse_plane(size, size, turtle.dig)

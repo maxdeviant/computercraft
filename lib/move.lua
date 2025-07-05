@@ -42,8 +42,8 @@ end
 --- @param height number
 --- @param action fun(): nil
 function move.traverse_plane(width, height, action)
-    for x = 1,width do
-        for _ = 1,height - 1 do
+    for x = 1, width do
+        for _ = 1, height - 1 do
             action()
             turtle.forward()
         end

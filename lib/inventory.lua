@@ -4,7 +4,7 @@ local inventory = {}
 ---
 --- @param item string The name of the item.
 function inventory.has_item(item)
-    for slot = 1,16 do
+    for slot = 1, 16 do
         local it = turtle.getItemDetail(slot)
         if it and it.name == item then
             return true
@@ -19,7 +19,7 @@ end
 ---
 --- @param item string The name of the item to select.
 function inventory.select_item(item)
-    for slot = 1,16 do
+    for slot = 1, 16 do
         turtle.select(slot)
         local it = turtle.getItemDetail()
         if it and it.name == item then

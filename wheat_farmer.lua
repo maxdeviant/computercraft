@@ -1,6 +1,6 @@
-local std = require "std"
-local inventory = require "lib.inventory"
-local move = require "lib.move"
+local std = require("std")
+local inventory = require("lib.inventory")
+local move = require("lib.move")
 
 local wheat = "minecraft:wheat"
 local wheat_seeds = "minecraft:wheat_seeds"
@@ -24,7 +24,9 @@ local function is_wheat_grown()
 end
 
 local function till_soil()
-    std.times(2, function() turtle.digDown() end)
+    std.times(2, function()
+        turtle.digDown()
+    end)
 end
 
 local function plant_wheat()

@@ -1,4 +1,4 @@
-local inventory = require "lib.inventory"
+local inventory = require("lib.inventory")
 
 local torch = "minecraft:torch"
 local tunnel_width = 3
@@ -10,13 +10,13 @@ local function place_torch(height)
         return false
     end
 
-    for _ = 1,height - 1 do
+    for _ = 1, height - 1 do
         turtle.up()
     end
 
     turtle.place()
 
-    for _ = 1,height - 1 do
+    for _ = 1, height - 1 do
         turtle.down()
     end
 
@@ -27,7 +27,7 @@ end
 ---
 --- Will return down to the starting location, once finished.
 local function mine_column(height)
-    for _ = 1,height - 1 do
+    for _ = 1, height - 1 do
         turtle.dig()
         turtle.digUp()
         turtle.up()
@@ -35,7 +35,7 @@ local function mine_column(height)
 
     turtle.dig()
 
-    for _ = 1,height do
+    for _ = 1, height do
         turtle.down()
     end
 end
@@ -45,7 +45,7 @@ local function mine_row(row)
     turtle.forward()
     turtle.turnLeft()
 
-    for i = 1,tunnel_width - 1 do
+    for i = 1, tunnel_width - 1 do
         mine_column(tunnel_height)
 
         if i < tunnel_width - 1 then
@@ -60,7 +60,7 @@ local function mine_row(row)
     turtle.turnRight()
     turtle.turnRight()
 
-    for _ = 1,tunnel_width - 1 do
+    for _ = 1, tunnel_width - 1 do
         turtle.forward()
     end
 
