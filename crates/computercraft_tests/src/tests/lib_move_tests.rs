@@ -17,7 +17,7 @@ fn test_move_functions() {
     set_script_root(&mut simulator);
 
     simulator
-        .run_lua(indoc! {r#"
+        .exec_lua(indoc! {r#"
             local move = require "lib.move"
 
             move.forward(3)
@@ -33,7 +33,7 @@ fn test_traverse_plane() {
     set_script_root(&mut simulator);
 
     simulator
-        .run_lua(indoc! {r#"
+        .exec_lua(indoc! {r#"
             local move = require "lib.move"
 
             move.traverse_plane(3, 3, function()

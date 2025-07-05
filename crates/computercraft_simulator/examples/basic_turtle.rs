@@ -1,4 +1,4 @@
-use computercraft_simulator::{Turtle, TurtleKind, TurtleResultExt};
+use computercraft_simulator::{Turtle, TurtleKind, TurtleResultExt, TurtleSide};
 use minecraft::Block;
 use minecraft::world::{Direction, Position, World};
 
@@ -58,7 +58,7 @@ fn main() {
 
     // Dig the block
     println!("\n--- Digging block in front ---");
-    let (success, error) = turtle.dig(&mut world);
+    let (success, error) = turtle.dig(TurtleSide::Right, &mut world);
     if success {
         println!("✓ Successfully dug block");
     } else {
@@ -99,7 +99,7 @@ fn main() {
     println!("\n--- Detecting and digging block in front ---");
     if turtle.detect(&world) {
         println!("✓ Detected solid block in front");
-        let (success, error) = turtle.dig(&mut world);
+        let (success, error) = turtle.dig(TurtleSide::Right, &mut world);
         if success {
             println!("✓ Successfully dug block");
         } else {

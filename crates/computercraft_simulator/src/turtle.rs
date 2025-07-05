@@ -17,6 +17,12 @@ impl TurtleKind {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TurtleSide {
+    Left,
+    Right,
+}
+
 #[derive(Error, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TurtleMoveError {
     #[error("Movement obstructed")]
@@ -56,6 +62,11 @@ impl Turtle {
     fn set_position(&mut self, position: Position) {
         self.position = position;
         self.position_history.push(position);
+    }
+
+    /// Returns the position the turtle is looking at.
+    pub fn looking_at(&self) -> Position {
+        self.position.forward(self.direction)
     }
 
     pub fn forward(&mut self, world: &World) -> Result<(), TurtleMoveError> {
@@ -149,16 +160,20 @@ impl Turtle {
         world.is_solid(target_position)
     }
 
-    pub fn dig(&mut self, world: &mut World) -> (bool, Option<String>) {
+    pub fn dig(&mut self, _side: TurtleSide, world: &mut World) -> (bool, Option<String>) {
         let target_position = self.position.forward(self.direction);
-
-        if !world.can_dig(target_position) {
-            return (false, Some("Nothing to dig".to_string()));
-        }
 
         let block = world.get_block(target_position);
         if block == Block::Air {
-            return (false, Some("Nothing to dig".to_string()));
+            return (false, Some("Nothing to dig here".to_string()));
+        }
+
+        if block == Block::Bedrock {
+            return (false, Some("Cannot break unbreakable block".to_string()));
+        }
+
+        if !world.can_dig(target_position) {
+            return (false, Some("Cannot break block with this tool".to_string()));
         }
 
         world.set_block(target_position, Block::Air);
@@ -326,7 +341,7 @@ mod tests {
 
         assert!(turtle.detect(&world));
 
-        let (success, _) = turtle.dig(&mut world);
+        let (success, _) = turtle.dig(TurtleSide::Right, &mut world);
         assert!(success);
         assert_eq!(world.get_block(Position::new(0, 0, -1)), Block::Air);
         assert!(!turtle.detect(&world));

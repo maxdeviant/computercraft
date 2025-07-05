@@ -6,7 +6,7 @@ use minecraft::world::{Direction, Position, World};
 use mlua::Lua;
 use thiserror::Error;
 
-use crate::{Turtle, TurtleKind, TurtleMoveError};
+use crate::{Turtle, TurtleKind, TurtleMoveError, TurtleSide};
 
 #[derive(Error, Debug)]
 pub enum SimulatorError {
@@ -152,23 +152,55 @@ impl Simulator {
                 }
             })?,
         )?;
+        turtle_table.set(
+            "dig",
+            self.lua.create_function({
+                let state = self.state.clone();
+                move |_lua, _side: Option<String>| {
+                    let mut turtle = state.turtle.borrow_mut();
+                    let mut world = state.world.borrow_mut();
+
+                    let (success, err) = turtle.dig(TurtleSide::Right, &mut world);
+
+                    Ok((success, err))
+                }
+            })?,
+        )?;
 
         globals.set("turtle", turtle_table)?;
 
         Ok(())
     }
 
-    pub fn run_lua(&self, code: &str) -> SimulatorResult<mlua::Value<'_>> {
-        let result = self.lua.load(code).eval()?;
-
-        Ok(result)
-    }
-
-    pub fn run_lua_file(&self, path: impl AsRef<Path>) -> SimulatorResult<mlua::Value<'_>> {
+    fn read_lua_file(&self, path: impl AsRef<Path>) -> SimulatorResult<String> {
         let path = self.state.current_dir.borrow().join(path);
         let content = std::fs::read_to_string(path)?;
 
-        self.run_lua(&content)
+        Ok(content)
+    }
+
+    pub fn eval_lua<'a, R>(&'a self, code: &str) -> SimulatorResult<R>
+    where
+        R: mlua::FromLuaMulti<'a>,
+    {
+        Ok(self.lua.load(code).eval()?)
+    }
+
+    pub fn eval_lua_file<'a, R>(&'a self, path: impl AsRef<Path>) -> SimulatorResult<R>
+    where
+        R: mlua::FromLuaMulti<'a>,
+    {
+        let code = self.read_lua_file(path)?;
+        self.eval_lua(&code)
+    }
+
+    pub fn exec_lua(&self, code: &str) -> SimulatorResult<()> {
+        Ok(self.lua.load(code).exec()?)
+    }
+
+    pub fn exec_lua_file(&self, path: impl AsRef<Path>) -> SimulatorResult<()> {
+        let code = self.read_lua_file(path)?;
+        self.exec_lua(&code)
     }
 }
 
@@ -215,46 +247,81 @@ mod tests {
     fn test_turtle_movement() {
         let simulator = Simulator::new().unwrap();
 
-        simulator.run_lua("turtle.forward()").unwrap();
+        simulator.exec_lua("turtle.forward()").unwrap();
         assert_eq!(
             simulator.state.turtle.borrow().position,
             Position::new(0, 0, -1)
         );
 
-        simulator.run_lua("turtle.back()").unwrap();
+        simulator.exec_lua("turtle.back()").unwrap();
         assert_eq!(
             simulator.state.turtle.borrow().position,
             Position::new(0, 0, 0)
         );
 
-        simulator.run_lua("turtle.up()").unwrap();
+        simulator.exec_lua("turtle.up()").unwrap();
         assert_eq!(
             simulator.state.turtle.borrow().position,
             Position::new(0, 1, 0)
         );
 
-        simulator.run_lua("turtle.down()").unwrap();
+        simulator.exec_lua("turtle.down()").unwrap();
         assert_eq!(
             simulator.state.turtle.borrow().position,
             Position::new(0, 0, 0)
         );
 
-        simulator.run_lua("turtle.turnRight()").unwrap();
+        simulator.exec_lua("turtle.turnRight()").unwrap();
         assert_eq!(simulator.state.turtle.borrow().direction, Direction::East);
 
-        simulator.run_lua("turtle.forward()").unwrap();
+        simulator.exec_lua("turtle.forward()").unwrap();
         assert_eq!(
             simulator.state.turtle.borrow().position,
             Position::new(1, 0, 0)
         );
 
-        simulator.run_lua("turtle.turnLeft()").unwrap();
+        simulator.exec_lua("turtle.turnLeft()").unwrap();
         assert_eq!(simulator.state.turtle.borrow().direction, Direction::North);
 
-        simulator.run_lua("turtle.forward()").unwrap();
+        simulator.exec_lua("turtle.forward()").unwrap();
         assert_eq!(
             simulator.state.turtle.borrow().position,
             Position::new(1, 0, -1)
         );
+    }
+
+    #[test]
+    fn test_turtle_dig() {
+        let simulator = Simulator::new().unwrap();
+
+        simulator
+            .state
+            .world
+            .borrow_mut()
+            .set_block(simulator.turtle().looking_at(), minecraft::Block::Air);
+
+        let result: (bool, Option<String>) = simulator.eval_lua("turtle.dig()").unwrap();
+        assert_eq!(result, (false, Some("Nothing to dig here".to_string())));
+
+        simulator
+            .state
+            .world
+            .borrow_mut()
+            .set_block(simulator.turtle().looking_at(), minecraft::Block::Bedrock);
+
+        let result: (bool, Option<String>) = simulator.eval_lua("turtle.dig()").unwrap();
+        assert_eq!(
+            result,
+            (false, Some("Cannot break unbreakable block".to_string()))
+        );
+
+        simulator
+            .state
+            .world
+            .borrow_mut()
+            .set_block(simulator.turtle().looking_at(), minecraft::Block::Stone);
+
+        let result: (bool, Option<String>) = simulator.eval_lua("turtle.dig()").unwrap();
+        assert_eq!(result, (true, None));
     }
 }
