@@ -42,8 +42,17 @@ local function harvest()
 end
 
 local function main()
+    local size = tonumber(arg[1])
+    if size == nil then
+        print("Invalid size")
+        return
+    end
+
+    print("Starting wheat farmer")
+    print("Size: " .. size .. "x" .. size)
+
     while true do
-        move.traverse_plane(9, 9, function()
+        move.traverse_plane(size, size, function()
             if is_wheat_grown() then
                 harvest()
                 plant_wheat()
