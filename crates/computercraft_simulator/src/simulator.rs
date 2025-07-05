@@ -19,7 +19,6 @@ pub enum SimulatorError {
 pub type SimulatorResult<T, E = SimulatorError> = Result<T, E>;
 
 pub struct Simulator {
-    root_dir: PathBuf,
     lua: Lua,
     state: Rc<SimulatorState>,
 }
@@ -29,7 +28,6 @@ impl Simulator {
         let lua = Lua::new();
 
         let mut this = Self {
-            root_dir: PathBuf::new(),
             lua,
             state: Rc::new(SimulatorState::new()),
         };
@@ -44,21 +42,22 @@ impl Simulator {
         self.state.turtle.borrow()
     }
 
-    pub fn set_root_dir(&mut self, root_dir: impl AsRef<Path>) -> SimulatorResult<()> {
-        self.root_dir = root_dir.as_ref().to_path_buf();
-        self.init_require()
+    pub fn set_current_dir(&mut self, root_dir: impl AsRef<Path>) {
+        *self.state.current_dir.borrow_mut() = root_dir.as_ref().to_path_buf();
     }
 
     fn init_require(&mut self) -> SimulatorResult<()> {
-        let root_dir = self.root_dir.clone();
+        let state = self.state.clone();
         let globals = self.lua.globals();
 
         globals.set(
             "require",
             self.lua.create_function(move |lua, module_name: String| {
                 let module_name_normalized = module_name.replace('.', "/");
-                let file_path = root_dir.join(format!("{module_name_normalized}.lua"));
-                dbg!(&file_path);
+                let file_path = state
+                    .current_dir
+                    .borrow()
+                    .join(format!("{module_name_normalized}.lua"));
                 match std::fs::read_to_string(&file_path) {
                     Ok(content) => {
                         let result: mlua::Value<'_> = lua.load(content.as_bytes()).eval()?;
@@ -174,7 +173,7 @@ impl Simulator {
     }
 
     pub fn run_lua_file(&self, path: impl AsRef<Path>) -> SimulatorResult<mlua::Value<'_>> {
-        let path = self.root_dir.join(path);
+        let path = self.state.current_dir.borrow().join(path);
         let content = std::fs::read_to_string(path)?;
 
         self.run_lua(&content)
@@ -182,6 +181,7 @@ impl Simulator {
 }
 
 pub struct SimulatorState {
+    current_dir: RefCell<PathBuf>,
     world: RefCell<World>,
     turtle: RefCell<Turtle>,
 }
@@ -189,6 +189,7 @@ pub struct SimulatorState {
 impl SimulatorState {
     pub fn new() -> Self {
         Self {
+            current_dir: RefCell::new(PathBuf::new()),
             world: RefCell::new(World::new()),
             turtle: RefCell::new(Turtle::new(
                 Position::new(0, 0, 0),

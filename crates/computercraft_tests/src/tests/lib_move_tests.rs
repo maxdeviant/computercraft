@@ -6,9 +6,7 @@ use pretty_assertions::assert_eq;
 #[test]
 fn test_move_functions() {
     let mut simulator = Simulator::new().unwrap();
-    simulator
-        .set_root_dir(format!("{}/../..", env!("CARGO_MANIFEST_DIR")))
-        .unwrap();
+    simulator.set_current_dir(format!("{}/../..", env!("CARGO_MANIFEST_DIR")));
 
     simulator
         .run_lua(indoc! {r#"
