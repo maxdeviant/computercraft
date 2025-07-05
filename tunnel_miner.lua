@@ -1,4 +1,4 @@
-local inventory = require("lib/inventory")
+local inventory = require "lib.inventory"
 
 local torch = "minecraft:torch"
 local tunnel_width = 3

@@ -1,4 +1,4 @@
-local inventory = require("lib/inventory")
+local inventory = require "lib.inventory"
 
 local log_kind = "minecraft:birch_log"
 local sapling_kind = "minecraft:birch_sapling"
