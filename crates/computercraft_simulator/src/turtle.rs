@@ -1,5 +1,6 @@
+use minecraft::blocks;
 use minecraft::world::{Direction, Position, World};
-use minecraft::{Block, ItemStack};
+use minecraft::{BlockId, ItemStack};
 use serde::Serialize;
 use thiserror::Error;
 
@@ -192,11 +193,11 @@ impl Turtle {
         };
 
         let block = world.get_block(target_position);
-        if block == Block::Air {
+        if block.id == BlockId::AIR {
             return Err(TurtleDigError::NothingToDig);
         }
 
-        if block == Block::Bedrock {
+        if block.id == BlockId::BEDROCK {
             return Err(TurtleDigError::UnbreakableBlock);
         }
 
@@ -204,7 +205,7 @@ impl Turtle {
             return Err(TurtleDigError::WrongTool);
         }
 
-        world.set_block(target_position, Block::Air);
+        world.set_block(target_position, blocks::AIR.clone());
 
         Ok(())
     }
@@ -282,6 +283,7 @@ impl Turtle {
 
 #[cfg(test)]
 mod tests {
+    use minecraft::blocks;
     use pretty_assertions::assert_eq;
 
     use super::*;
@@ -325,7 +327,7 @@ mod tests {
     #[test]
     fn test_turtle_blocked_movement() {
         let mut world = World::new();
-        world.set_block(Position::new(0, 0, -1), Block::Stone);
+        world.set_block(Position::new(0, 0, -1), blocks::STONE.clone());
 
         let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleKind::Normal);
 
@@ -357,14 +359,17 @@ mod tests {
     #[test]
     fn test_turtle_dig() {
         let mut world = World::new();
-        world.set_block(Position::new(0, 0, -1), Block::Stone);
+        world.set_block(Position::new(0, 0, -1), blocks::STONE.clone());
 
         let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleKind::Normal);
 
         assert!(turtle.detect(&world));
 
         turtle.dig(TurtleSide::Right, &mut world).unwrap();
-        assert_eq!(world.get_block(Position::new(0, 0, -1)), Block::Air);
+        assert_eq!(
+            world.get_block(Position::new(0, 0, -1)),
+            blocks::AIR.clone()
+        );
         assert!(!turtle.detect(&world));
     }
 }

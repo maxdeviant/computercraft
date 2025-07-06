@@ -400,7 +400,7 @@ impl SimulatorState {
 
 #[cfg(test)]
 mod tests {
-    use minecraft::Block;
+    use minecraft::blocks;
     use pretty_assertions::assert_eq;
 
     use super::*;
@@ -456,18 +456,18 @@ mod tests {
     fn test_turtle_dig() {
         let simulator = Simulator::new().unwrap();
 
-        simulator.set_block_at(simulator.turtle().looking_at(), Block::Air);
+        simulator.set_block_at(simulator.turtle().looking_at(), blocks::AIR.clone());
         let result: (bool, Option<String>) = simulator.eval_lua("turtle.dig()").unwrap();
         assert_eq!(result, (false, Some("Nothing to dig here".to_string())));
 
-        simulator.set_block_at(simulator.turtle().looking_at(), Block::Bedrock);
+        simulator.set_block_at(simulator.turtle().looking_at(), blocks::BEDROCK.clone());
         let result: (bool, Option<String>) = simulator.eval_lua("turtle.dig()").unwrap();
         assert_eq!(
             result,
             (false, Some("Cannot break unbreakable block".to_string()))
         );
 
-        simulator.set_block_at(simulator.turtle().looking_at(), Block::Stone);
+        simulator.set_block_at(simulator.turtle().looking_at(), blocks::STONE.clone());
         let result: (bool, Option<String>) = simulator.eval_lua("turtle.dig()").unwrap();
         assert_eq!(result, (true, None));
     }

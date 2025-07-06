@@ -1,24 +1,8 @@
+mod block;
+pub mod blocks;
 pub mod world;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Block {
-    Air,
-    Stone,
-    Dirt,
-    Wood,
-    Cobblestone,
-    Bedrock,
-}
-
-impl Block {
-    pub fn is_solid(&self) -> bool {
-        !matches!(self, Block::Air)
-    }
-
-    pub fn is_diggable(&self) -> bool {
-        !matches!(self, Block::Air | Block::Bedrock)
-    }
-}
+pub use block::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ItemStack {

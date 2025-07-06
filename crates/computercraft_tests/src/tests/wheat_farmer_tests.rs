@@ -1,6 +1,6 @@
 use computercraft_simulator::Simulator;
 use indoc::indoc;
-use minecraft::Block;
+use minecraft::blocks;
 use minecraft::world::Position;
 use pretty_assertions::assert_eq;
 
@@ -13,7 +13,7 @@ fn test_wheat_farmer() {
 
     for x in 0..3 {
         for z in 0..3 {
-            simulator.set_block_at(Position::new(x, 0, z), Block::Dirt);
+            simulator.set_block_at(Position::new(x, 0, z), blocks::DIRT.clone());
         }
     }
 

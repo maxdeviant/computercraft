@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::Block;
+use crate::{Block, BlockId};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Direction {
@@ -99,11 +99,14 @@ impl World {
     }
 
     pub fn get_block(&self, position: Position) -> Block {
-        self.blocks.get(&position).copied().unwrap_or(Block::Air)
+        self.blocks
+            .get(&position)
+            .cloned()
+            .unwrap_or(Block { id: BlockId::AIR })
     }
 
     pub fn set_block(&mut self, position: Position, block: Block) {
-        if block == Block::Air {
+        if block.id == BlockId::AIR {
             self.blocks.remove(&position);
         } else {
             self.blocks.insert(position, block);
