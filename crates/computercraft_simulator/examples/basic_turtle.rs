@@ -17,7 +17,7 @@ fn main() {
 
     println!("Starting turtle simulation...");
     println!("Turtle position: {:?}", turtle.position);
-    println!("Turtle direction: {:?}", turtle.direction);
+    println!("Turtle direction: {:?}", turtle.facing);
     println!(
         "Turtle fuel: {}/{}",
         turtle.get_fuel_level(),
@@ -83,7 +83,7 @@ fn main() {
     // Turn right and move
     println!("\n--- Turning right and moving ---");
     turtle.turn_right();
-    println!("✓ Turned right, now facing {:?}", turtle.direction);
+    println!("✓ Turned right, now facing {:?}", turtle.facing);
 
     let (success, error) = turtle.forward(&mut world).to_lua_result();
     if success {
@@ -144,7 +144,7 @@ fn main() {
     // Final status
     println!("\n--- Final Status ---");
     println!("Final position: {:?}", turtle.position);
-    println!("Final direction: {:?}", turtle.direction);
+    println!("Final direction: {:?}", turtle.facing);
     println!(
         "Fuel remaining: {}/{}",
         turtle.get_fuel_level(),

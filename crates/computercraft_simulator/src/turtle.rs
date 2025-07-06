@@ -3,6 +3,13 @@ use minecraft::{Block, ItemStack};
 use thiserror::Error;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InteractDirection {
+    Up,
+    Down,
+    Direction(Direction),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TurtleKind {
     Normal,
     Advanced,
@@ -33,9 +40,11 @@ pub enum TurtleMoveError {
 
 #[derive(Debug)]
 pub struct Turtle {
+    /// The position of the turtle in the world.
     pub position: Position,
     pub position_history: Vec<Position>,
-    pub direction: Direction,
+    /// The direction the turtle is facing.
+    pub facing: Direction,
     pub kind: TurtleKind,
     pub fuel: u32,
     pub inventory: [Option<ItemStack>; 16],
@@ -49,7 +58,7 @@ impl Turtle {
         Self {
             position,
             position_history: vec![position],
-            direction,
+            facing: direction,
             kind,
             fuel: kind.fuel_limit(),
             inventory: Default::default(),
@@ -66,87 +75,50 @@ impl Turtle {
 
     /// Returns the position the turtle is looking at.
     pub fn looking_at(&self) -> Position {
-        self.position.forward(self.direction)
+        self.position.forward(self.facing)
+    }
+
+    pub fn move_to(&mut self, position: Position, world: &World) -> Result<(), TurtleMoveError> {
+        if world.is_solid(position) {
+            return Err(TurtleMoveError::Obstructed);
+        }
+
+        if self.fuel == 0 {
+            return Err(TurtleMoveError::OutOfFuel);
+        }
+
+        self.set_position(position);
+        self.fuel = self.fuel.saturating_sub(1);
+
+        Ok(())
     }
 
     pub fn forward(&mut self, world: &World) -> Result<(), TurtleMoveError> {
-        let target_position = self.position.forward(self.direction);
-
-        if world.is_solid(target_position) {
-            return Err(TurtleMoveError::Obstructed);
-        }
-
-        if self.fuel == 0 {
-            return Err(TurtleMoveError::OutOfFuel);
-        }
-
-        self.set_position(target_position);
-        self.fuel = self.fuel.saturating_sub(1);
-
-        Ok(())
+        self.move_to(self.position.forward(self.facing), world)
     }
 
     pub fn back(&mut self, world: &World) -> Result<(), TurtleMoveError> {
-        let target_position = self.position.back(self.direction);
-
-        if world.is_solid(target_position) {
-            return Err(TurtleMoveError::Obstructed);
-        }
-
-        if self.fuel == 0 {
-            return Err(TurtleMoveError::OutOfFuel);
-        }
-
-        self.set_position(target_position);
-        self.fuel = self.fuel.saturating_sub(1);
-
-        Ok(())
+        self.move_to(self.position.back(self.facing), world)
     }
 
     pub fn up(&mut self, world: &World) -> Result<(), TurtleMoveError> {
-        let target_position = self.position.up();
-
-        if world.is_solid(target_position) {
-            return Err(TurtleMoveError::Obstructed);
-        }
-
-        if self.fuel == 0 {
-            return Err(TurtleMoveError::OutOfFuel);
-        }
-
-        self.set_position(target_position);
-        self.fuel = self.fuel.saturating_sub(1);
-
-        Ok(())
+        self.move_to(self.position.up(), world)
     }
 
     pub fn down(&mut self, world: &World) -> Result<(), TurtleMoveError> {
-        let target_position = self.position.down();
-
-        if world.is_solid(target_position) {
-            return Err(TurtleMoveError::Obstructed);
-        }
-
-        if self.fuel == 0 {
-            return Err(TurtleMoveError::OutOfFuel);
-        }
-
-        self.set_position(target_position);
-        self.fuel = self.fuel.saturating_sub(1);
-
-        Ok(())
+        self.move_to(self.position.down(), world)
     }
 
     pub fn turn_left(&mut self) {
-        self.direction = self.direction.turn_left();
+        self.facing = self.facing.turn_left();
     }
 
     pub fn turn_right(&mut self) {
-        self.direction = self.direction.turn_right();
+        self.facing = self.facing.turn_right();
     }
 
     pub fn detect(&self, world: &World) -> bool {
-        let target_position = self.position.forward(self.direction);
+        let target_position = self.position.forward(self.facing);
         world.is_solid(target_position)
     }
 
@@ -161,7 +133,7 @@ impl Turtle {
     }
 
     pub fn dig(&mut self, _side: TurtleSide, world: &mut World) -> (bool, Option<String>) {
-        let target_position = self.position.forward(self.direction);
+        let target_position = self.position.forward(self.facing);
 
         let block = world.get_block(target_position);
         if block == Block::Air {
@@ -294,7 +266,7 @@ mod tests {
         assert_eq!(turtle.position, Position::new(0, 0, -1));
 
         turtle.turn_right();
-        assert_eq!(turtle.direction, Direction::East);
+        assert_eq!(turtle.facing, Direction::East);
 
         turtle.forward(&mut world).unwrap();
         assert_eq!(turtle.position, Position::new(1, 0, -1));

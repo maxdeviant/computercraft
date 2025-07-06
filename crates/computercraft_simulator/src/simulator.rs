@@ -280,7 +280,7 @@ mod tests {
         );
 
         simulator.exec_lua("turtle.turnRight()").unwrap();
-        assert_eq!(simulator.state.turtle.borrow().direction, Direction::East);
+        assert_eq!(simulator.state.turtle.borrow().facing, Direction::East);
 
         simulator.exec_lua("turtle.forward()").unwrap();
         assert_eq!(
@@ -289,7 +289,7 @@ mod tests {
         );
 
         simulator.exec_lua("turtle.turnLeft()").unwrap();
-        assert_eq!(simulator.state.turtle.borrow().direction, Direction::North);
+        assert_eq!(simulator.state.turtle.borrow().facing, Direction::North);
 
         simulator.exec_lua("turtle.forward()").unwrap();
         assert_eq!(

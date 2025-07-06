@@ -41,7 +41,7 @@ fn test_traverse_plane() {
         "#})
         .unwrap();
     assert_eq!(simulator.turtle().position, Position::new(2, 0, -2));
-    assert_eq!(simulator.turtle().direction, Direction::South);
+    assert_eq!(simulator.turtle().facing, Direction::South);
     assert_eq!(
         simulator.turtle().position_history,
         vec![
