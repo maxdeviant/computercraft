@@ -7,7 +7,7 @@ use minecraft::world::{Direction, Position, World};
 use mlua::Lua;
 use thiserror::Error;
 
-use crate::{Turtle, TurtleKind, TurtleMoveError, TurtleSide};
+use crate::{Turtle, TurtleDigError, TurtleKind, TurtleMoveError, TurtleSide};
 
 #[derive(Error, Debug)]
 pub enum SimulatorError {
@@ -167,9 +167,33 @@ impl Simulator {
                     let mut turtle = state.turtle.borrow_mut();
                     let mut world = state.world.borrow_mut();
 
-                    let (success, err) = turtle.dig(TurtleSide::Right, &mut world);
+                    Ok(turtle.dig(TurtleSide::Right, &mut world).to_lua_result())
+                }
+            })?,
+        )?;
+        turtle_table.set(
+            "digUp",
+            self.lua.create_function({
+                let state = self.state.clone();
+                move |_lua, _side: Option<String>| {
+                    let mut turtle = state.turtle.borrow_mut();
+                    let mut world = state.world.borrow_mut();
 
-                    Ok((success, err))
+                    Ok(turtle.dig_up(TurtleSide::Right, &mut world).to_lua_result())
+                }
+            })?,
+        )?;
+        turtle_table.set(
+            "digDown",
+            self.lua.create_function({
+                let state = self.state.clone();
+                move |_lua, _side: Option<String>| {
+                    let mut turtle = state.turtle.borrow_mut();
+                    let mut world = state.world.borrow_mut();
+
+                    Ok(turtle
+                        .dig_down(TurtleSide::Right, &mut world)
+                        .to_lua_result())
                 }
             })?,
         )?;
@@ -216,6 +240,15 @@ pub trait TurtleResultExt {
 }
 
 impl<T> TurtleResultExt for Result<T, TurtleMoveError> {
+    fn to_lua_result(self) -> (bool, Option<String>) {
+        match self {
+            Ok(_) => (true, None),
+            Err(err) => (false, Some(err.to_string())),
+        }
+    }
+}
+
+impl<T> TurtleResultExt for Result<T, TurtleDigError> {
     fn to_lua_result(self) -> (bool, Option<String>) {
         match self {
             Ok(_) => (true, None),

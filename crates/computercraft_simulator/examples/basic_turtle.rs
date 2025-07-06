@@ -58,7 +58,7 @@ fn main() {
 
     // Dig the block
     println!("\n--- Digging block in front ---");
-    let (success, error) = turtle.dig(TurtleSide::Right, &mut world);
+    let (success, error) = turtle.dig(TurtleSide::Right, &mut world).to_lua_result();
     if success {
         println!("✓ Successfully dug block");
     } else {
@@ -99,7 +99,7 @@ fn main() {
     println!("\n--- Detecting and digging block in front ---");
     if turtle.detect(&world) {
         println!("✓ Detected solid block in front");
-        let (success, error) = turtle.dig(TurtleSide::Right, &mut world);
+        let (success, error) = turtle.dig(TurtleSide::Right, &mut world).to_lua_result();
         if success {
             println!("✓ Successfully dug block");
         } else {
@@ -116,7 +116,7 @@ fn main() {
     println!("\n--- Checking above ---");
     if turtle.detect_up(&world) {
         println!("✓ Detected solid block above");
-        let (success, error) = turtle.dig_up(&mut world);
+        let (success, error) = turtle.dig_up(TurtleSide::Right, &mut world).to_lua_result();
         if success {
             println!("✓ Successfully dug block above");
         } else {

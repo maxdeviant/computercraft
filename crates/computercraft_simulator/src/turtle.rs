@@ -4,9 +4,9 @@ use thiserror::Error;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InteractDirection {
+    Forward,
     Up,
     Down,
-    Direction(Direction),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -36,6 +36,16 @@ pub enum TurtleMoveError {
     Obstructed,
     #[error("Out of fuel")]
     OutOfFuel,
+}
+
+#[derive(Error, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TurtleDigError {
+    #[error("Nothing to dig here")]
+    NothingToDig,
+    #[error("Cannot break unbreakable block")]
+    UnbreakableBlock,
+    #[error("Cannot break block with this tool")]
+    WrongTool,
 }
 
 #[derive(Debug)]
@@ -132,56 +142,46 @@ impl Turtle {
         world.is_solid(target_position)
     }
 
-    pub fn dig(&mut self, _side: TurtleSide, world: &mut World) -> (bool, Option<String>) {
-        let target_position = self.position.forward(self.facing);
+    pub fn dig_in(
+        &mut self,
+        direction: InteractDirection,
+        _side: TurtleSide,
+        world: &mut World,
+    ) -> Result<(), TurtleDigError> {
+        let target_position = match direction {
+            InteractDirection::Forward => self.position.forward(self.facing),
+            InteractDirection::Up => self.position.up(),
+            InteractDirection::Down => self.position.down(),
+        };
 
         let block = world.get_block(target_position);
         if block == Block::Air {
-            return (false, Some("Nothing to dig here".to_string()));
+            return Err(TurtleDigError::NothingToDig);
         }
 
         if block == Block::Bedrock {
-            return (false, Some("Cannot break unbreakable block".to_string()));
+            return Err(TurtleDigError::UnbreakableBlock);
         }
 
         if !world.can_dig(target_position) {
-            return (false, Some("Cannot break block with this tool".to_string()));
+            return Err(TurtleDigError::WrongTool);
         }
 
         world.set_block(target_position, Block::Air);
-        (true, None)
+
+        Ok(())
     }
 
-    pub fn dig_up(&mut self, world: &mut World) -> (bool, Option<String>) {
-        let target_position = self.position.up();
-
-        if !world.can_dig(target_position) {
-            return (false, Some("Nothing to dig".to_string()));
-        }
-
-        let block = world.get_block(target_position);
-        if block == Block::Air {
-            return (false, Some("Nothing to dig".to_string()));
-        }
-
-        world.set_block(target_position, Block::Air);
-        (true, None)
+    pub fn dig(&mut self, side: TurtleSide, world: &mut World) -> Result<(), TurtleDigError> {
+        self.dig_in(InteractDirection::Forward, side, world)
     }
 
-    pub fn dig_down(&mut self, world: &mut World) -> (bool, Option<String>) {
-        let target_position = self.position.down();
+    pub fn dig_up(&mut self, side: TurtleSide, world: &mut World) -> Result<(), TurtleDigError> {
+        self.dig_in(InteractDirection::Up, side, world)
+    }
 
-        if !world.can_dig(target_position) {
-            return (false, Some("Nothing to dig".to_string()));
-        }
-
-        let block = world.get_block(target_position);
-        if block == Block::Air {
-            return (false, Some("Nothing to dig".to_string()));
-        }
-
-        world.set_block(target_position, Block::Air);
-        (true, None)
+    pub fn dig_down(&mut self, side: TurtleSide, world: &mut World) -> Result<(), TurtleDigError> {
+        self.dig_in(InteractDirection::Down, side, world)
     }
 
     pub fn get_fuel_level(&self) -> u32 {
@@ -313,8 +313,7 @@ mod tests {
 
         assert!(turtle.detect(&world));
 
-        let (success, _) = turtle.dig(TurtleSide::Right, &mut world);
-        assert!(success);
+        turtle.dig(TurtleSide::Right, &mut world).unwrap();
         assert_eq!(world.get_block(Position::new(0, 0, -1)), Block::Air);
         assert!(!turtle.detect(&world));
     }
