@@ -1,7 +1,7 @@
 use computercraft_simulator::{Simulator, TurtleSide};
 use indoc::indoc;
 use minecraft::world::Position;
-use minecraft::{BlockId, ItemId, blocks};
+use minecraft::{BlockId, ItemId, ItemStack, blocks};
 use pretty_assertions::assert_eq;
 
 use crate::setup::set_script_root;
@@ -23,6 +23,10 @@ fn test_wheat_farmer() {
         TurtleSide::Right,
         Some(ItemId::new_static("minecraft:diamond_hoe")),
     );
+    simulator.turtle_mut().inventory[15] = Some(ItemStack {
+        name: ItemId::new_static("minecraft:wheat_seeds"),
+        count: 20,
+    });
     simulator.move_turtle_to(Position::new(0, 1, 0));
 
     simulator
@@ -33,6 +37,7 @@ fn test_wheat_farmer() {
         "#})
         .unwrap();
     assert_eq!(simulator.turtle().position, Position::new(2, 1, -2));
+    assert_eq!(simulator.turtle().get_item_count(Some(15)), 12);
 
     for x in 0..FIELD_SIZE {
         for z in 0..FIELD_SIZE {
@@ -43,6 +48,9 @@ fn test_wheat_farmer() {
 
             let block = simulator.block_at(Position::new(x, 0, -z));
             assert_eq!(block.id, BlockId::FARMLAND);
+
+            let block = simulator.block_at(Position::new(x, 1, -z));
+            assert_eq!(block.id, BlockId::new_static("minecraft:wheat"));
         }
     }
 }

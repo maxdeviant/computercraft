@@ -8,12 +8,12 @@ pub use item::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ItemStack {
-    pub name: String,
+    pub name: ItemId,
     pub count: u32,
 }
 
 impl ItemStack {
-    pub fn new(name: String, count: u32) -> Self {
+    pub fn new(name: ItemId, count: u32) -> Self {
         Self { name, count }
     }
 

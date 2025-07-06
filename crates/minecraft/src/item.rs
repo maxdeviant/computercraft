@@ -1,7 +1,10 @@
 use std::fmt::Display;
 use std::sync::Arc;
 
-#[derive(Debug, Eq, Clone)]
+use serde::Serialize;
+
+#[derive(Debug, Eq, Clone, Serialize)]
+#[serde(untagged)]
 pub enum ItemId {
     Static(&'static str),
     Owned(Arc<str>),

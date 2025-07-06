@@ -146,6 +146,7 @@ name = "minecraft"
 version = "0.1.0"
 dependencies = [
  "pretty_assertions",
+ "serde",
 ]
 
 [[package]]

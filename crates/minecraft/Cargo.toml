@@ -5,6 +5,7 @@ publish = false
 edition = "2024"
 
 [dependencies]
+serde = { workspace = true, features = ["derive", "rc"] }
 
 [dev-dependencies]
 pretty_assertions.workspace = true

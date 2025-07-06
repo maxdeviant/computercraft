@@ -1,5 +1,5 @@
 use minecraft::world::{Direction, Position, World};
-use minecraft::{BlockId, ItemStack};
+use minecraft::{Block, BlockId, ItemStack};
 use minecraft::{ItemId, blocks};
 use serde::Serialize;
 use thiserror::Error;
@@ -60,9 +60,17 @@ pub enum TurtleDigError {
     WrongTool,
 }
 
+#[derive(Error, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TurtlePlaceError {
+    #[error("No items to place")]
+    NoItems,
+    #[error("Cannot place block here")]
+    CannotPlaceBlock,
+}
+
 #[derive(Debug, Serialize)]
 pub struct ItemDetail {
-    pub name: String,
+    pub name: ItemId,
     pub count: u32,
 }
 
@@ -251,6 +259,65 @@ impl Turtle {
 
     pub fn dig_down(&mut self, side: TurtleSide, world: &mut World) -> Result<(), TurtleDigError> {
         self.dig(InteractDirection::Down, side, world)
+    }
+
+    pub fn place(
+        &mut self,
+        direction: InteractDirection,
+        _text: Option<String>,
+        world: &mut World,
+    ) -> Result<(), TurtlePlaceError> {
+        let Some(stack) = self.inventory[self.selected_slot].as_mut() else {
+            return Err(TurtlePlaceError::NoItems);
+        };
+
+        if stack.is_empty() {
+            return Err(TurtlePlaceError::NoItems);
+        }
+
+        if stack.name == ItemId::new_static("minecraft:wheat_seeds") {
+            match direction {
+                InteractDirection::Down => {
+                    world.set_block(
+                        self.position,
+                        Block {
+                            id: BlockId::new_static("minecraft:wheat"),
+                        },
+                    );
+
+                    stack.count -= 1;
+                }
+                InteractDirection::Forward | InteractDirection::Up => {
+                    return Err(TurtlePlaceError::CannotPlaceBlock);
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn place_forward(
+        &mut self,
+        text: Option<String>,
+        world: &mut World,
+    ) -> Result<(), TurtlePlaceError> {
+        self.place(InteractDirection::Forward, text, world)
+    }
+
+    pub fn place_up(
+        &mut self,
+        text: Option<String>,
+        world: &mut World,
+    ) -> Result<(), TurtlePlaceError> {
+        self.place(InteractDirection::Up, text, world)
+    }
+
+    pub fn place_down(
+        &mut self,
+        text: Option<String>,
+        world: &mut World,
+    ) -> Result<(), TurtlePlaceError> {
+        self.place(InteractDirection::Down, text, world)
     }
 
     pub fn get_fuel_level(&self) -> u32 {

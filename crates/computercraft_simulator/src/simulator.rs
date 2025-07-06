@@ -10,7 +10,7 @@ use thiserror::Error;
 
 use crate::{
     InspectData, Turtle, TurtleDigError, TurtleInspectError, TurtleKind, TurtleMoveError,
-    TurtleSide,
+    TurtlePlaceError, TurtleSide,
 };
 
 #[derive(Error, Debug)]
@@ -220,7 +220,7 @@ impl Simulator {
                 move |_lua, slot: i32| {
                     let mut turtle = state.turtle.borrow_mut();
 
-                    Ok(turtle.select(slot as usize))
+                    Ok(turtle.select((slot - 1) as usize))
                 }
             })?,
         )?;
@@ -235,6 +235,42 @@ impl Simulator {
                     Ok(turtle
                         .dig_down(TurtleSide::Right, &mut world)
                         .to_lua_result())
+                }
+            })?,
+        )?;
+        turtle_table.set(
+            "place",
+            self.lua.create_function({
+                let state = self.state.clone();
+                move |_lua, text: Option<String>| {
+                    let mut turtle = state.turtle.borrow_mut();
+                    let mut world = state.world.borrow_mut();
+
+                    Ok(turtle.place_forward(text, &mut world).to_lua_result())
+                }
+            })?,
+        )?;
+        turtle_table.set(
+            "placeUp",
+            self.lua.create_function({
+                let state = self.state.clone();
+                move |_lua, text: Option<String>| {
+                    let mut turtle = state.turtle.borrow_mut();
+                    let mut world = state.world.borrow_mut();
+
+                    Ok(turtle.place_up(text, &mut world).to_lua_result())
+                }
+            })?,
+        )?;
+        turtle_table.set(
+            "placeDown",
+            self.lua.create_function({
+                let state = self.state.clone();
+                move |_lua, text: Option<String>| {
+                    let mut turtle = state.turtle.borrow_mut();
+                    let mut world = state.world.borrow_mut();
+
+                    Ok(turtle.place_down(text, &mut world).to_lua_result())
                 }
             })?,
         )?;
@@ -288,7 +324,7 @@ impl Simulator {
                     let turtle = state.turtle.borrow();
 
                     let slot = slot
-                        .map(|slot| slot as usize)
+                        .map(|slot| (slot - 1) as usize)
                         .unwrap_or(turtle.selected_slot);
 
                     let detail = turtle.get_item_detail(slot, detailed);
@@ -381,6 +417,15 @@ impl TurtleResultExt<InspectDataOrReason> for Result<InspectData, TurtleInspectE
 }
 
 impl TurtleResultExt<Option<String>> for Result<(), TurtleDigError> {
+    fn to_lua_result(self) -> (bool, Option<String>) {
+        match self {
+            Ok(_) => (true, None),
+            Err(err) => (false, Some(err.to_string())),
+        }
+    }
+}
+
+impl TurtleResultExt<Option<String>> for Result<(), TurtlePlaceError> {
     fn to_lua_result(self) -> (bool, Option<String>) {
         match self {
             Ok(_) => (true, None),
