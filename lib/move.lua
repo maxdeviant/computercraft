@@ -52,6 +52,11 @@ function move.turn_right(n)
     std.times(n, turtle.turnRight)
 end
 
+--- Turns the turtle 180º.
+function move.turn_around()
+    move.turn_right(2)
+end
+
 --- Traverses a plane with the specified width and height, invoking the provided action at each block.
 ---
 --- @param width number
