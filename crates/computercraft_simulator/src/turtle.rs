@@ -54,6 +54,8 @@ pub enum TurtleDigError {
     NothingToDig,
     #[error("Cannot break unbreakable block")]
     UnbreakableBlock,
+    #[error("No tool to dig with")]
+    NoTool,
     #[error("Cannot break block with this tool")]
     WrongTool,
 }
@@ -91,6 +93,13 @@ impl Turtle {
             selected_slot: 0,
             left_upgrade: None,
             right_upgrade: None,
+        }
+    }
+
+    pub fn set_upgrade(&mut self, side: TurtleSide, upgrade: Option<String>) {
+        match side {
+            TurtleSide::Left => self.left_upgrade = upgrade,
+            TurtleSide::Right => self.right_upgrade = upgrade,
         }
     }
 
@@ -183,7 +192,7 @@ impl Turtle {
     pub fn dig(
         &mut self,
         direction: InteractDirection,
-        _side: TurtleSide,
+        side: TurtleSide,
         world: &mut World,
     ) -> Result<(), TurtleDigError> {
         let target_position = match direction {
@@ -201,11 +210,30 @@ impl Turtle {
             return Err(TurtleDigError::UnbreakableBlock);
         }
 
+        let upgrade = match side {
+            TurtleSide::Left => self.left_upgrade.as_ref(),
+            TurtleSide::Right => self.right_upgrade.as_ref(),
+        };
+        let Some(upgrade) = upgrade else {
+            return Err(TurtleDigError::NoTool);
+        };
+
         if !world.can_dig(target_position) {
             return Err(TurtleDigError::WrongTool);
         }
 
-        world.set_block(target_position, blocks::AIR.clone());
+        match upgrade.as_str() {
+            "minecraft:diamond_hoe" => {
+                if block.id != BlockId::GRASS_BLOCK && block.id != BlockId::DIRT {
+                    return Err(TurtleDigError::WrongTool);
+                }
+
+                world.set_block(target_position, blocks::FARMLAND.clone());
+            }
+            _ => {
+                world.set_block(target_position, blocks::AIR.clone());
+            }
+        }
 
         Ok(())
     }
@@ -366,6 +394,10 @@ mod tests {
         world.set_block(Position::new(0, 0, -1), blocks::STONE.clone());
 
         let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleKind::Normal);
+        turtle.set_upgrade(
+            TurtleSide::Right,
+            Some("minecraft:diamond_pickaxe".to_string()),
+        );
 
         assert!(turtle.detect(&world));
 

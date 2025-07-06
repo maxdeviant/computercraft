@@ -56,8 +56,17 @@ impl Simulator {
         self.state.turtle.borrow()
     }
 
+    pub fn turtle_mut(&self) -> std::cell::RefMut<'_, Turtle> {
+        self.state.turtle.borrow_mut()
+    }
+
     pub fn set_current_dir(&mut self, root_dir: impl AsRef<Path>) {
         *self.state.current_dir.borrow_mut() = root_dir.as_ref().to_path_buf();
+    }
+
+    pub fn block_at(&self, position: Position) -> Block {
+        let world = self.state.world.borrow();
+        world.get_block(position)
     }
 
     /// Sets the block at the given position.
@@ -457,6 +466,11 @@ mod tests {
     #[test]
     fn test_turtle_dig() {
         let simulator = Simulator::new().unwrap();
+
+        simulator.turtle_mut().set_upgrade(
+            TurtleSide::Right,
+            Some("minecraft:diamond_pickaxe".to_string()),
+        );
 
         simulator.set_block_at(simulator.turtle().looking_at(), blocks::AIR.clone());
         let result: (bool, Option<String>) = simulator.eval_lua("turtle.dig()").unwrap();

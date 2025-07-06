@@ -1,7 +1,7 @@
-use computercraft_simulator::Simulator;
+use computercraft_simulator::{Simulator, TurtleSide};
 use indoc::indoc;
-use minecraft::blocks;
 use minecraft::world::Position;
+use minecraft::{BlockId, blocks};
 use pretty_assertions::assert_eq;
 
 use crate::setup::set_script_root;
@@ -11,12 +11,17 @@ fn test_wheat_farmer() {
     let mut simulator = Simulator::new().unwrap();
     set_script_root(&mut simulator);
 
-    for x in 0..3 {
-        for z in 0..3 {
-            simulator.set_block_at(Position::new(x, 0, z), blocks::DIRT.clone());
+    const FIELD_SIZE: i32 = 3;
+
+    for x in 0..FIELD_SIZE {
+        for z in 0..FIELD_SIZE {
+            simulator.set_block_at(Position::new(x, 0, -z), blocks::DIRT.clone());
         }
     }
 
+    simulator
+        .turtle_mut()
+        .set_upgrade(TurtleSide::Right, Some("minecraft:diamond_hoe".to_string()));
     simulator.move_turtle_to(Position::new(0, 1, 0));
 
     simulator
@@ -27,4 +32,16 @@ fn test_wheat_farmer() {
         "#})
         .unwrap();
     assert_eq!(simulator.turtle().position, Position::new(2, 1, -2));
+
+    for x in 0..FIELD_SIZE {
+        for z in 0..FIELD_SIZE {
+            // Right now the behavior of the program is that it doesn't do the action on the last block.
+            if z == FIELD_SIZE - 1 {
+                continue;
+            }
+
+            let block = simulator.block_at(Position::new(x, 0, -z));
+            assert_eq!(block.id, BlockId::FARMLAND);
+        }
+    }
 }
