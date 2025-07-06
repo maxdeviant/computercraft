@@ -21,13 +21,11 @@ function cylinder_builder.build(height, diameter, filled)
     print("Filled: " .. (filled and "yes" or "no"))
 
     for layer = 1, height do
+        turtle.up()
+
         print("Building layer " .. layer .. " of " .. height)
 
         move.traverse_circle(diameter, filled, place_block)
-
-        if layer < height then
-            turtle.up()
-        end
     end
 
     print("Cylinder construction complete!")
