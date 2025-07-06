@@ -210,6 +210,15 @@ impl Simulator {
         Ok(content)
     }
 
+    pub fn exec_lua(&self, code: &str) -> SimulatorResult<()> {
+        Ok(self.lua.load(code).exec()?)
+    }
+
+    pub fn exec_lua_file(&self, path: impl AsRef<Path>) -> SimulatorResult<()> {
+        let code = self.read_lua_file(path)?;
+        self.exec_lua(&code)
+    }
+
     pub fn eval_lua<'a, R>(&'a self, code: &str) -> SimulatorResult<R>
     where
         R: mlua::FromLuaMulti<'a>,
@@ -225,13 +234,21 @@ impl Simulator {
         self.eval_lua(&code)
     }
 
-    pub fn exec_lua(&self, code: &str) -> SimulatorResult<()> {
-        Ok(self.lua.load(code).exec()?)
+    pub fn call_lua<'a, A, R>(&'a self, code: &str, args: A) -> SimulatorResult<R>
+    where
+        A: mlua::IntoLuaMulti<'a>,
+        R: mlua::FromLuaMulti<'a>,
+    {
+        Ok(self.lua.load(code).call(args)?)
     }
 
-    pub fn exec_lua_file(&self, path: impl AsRef<Path>) -> SimulatorResult<()> {
+    pub fn call_lua_file<'a, A, R>(&'a self, path: impl AsRef<Path>, args: A) -> SimulatorResult<R>
+    where
+        A: mlua::IntoLuaMulti<'a>,
+        R: mlua::FromLuaMulti<'a>,
+    {
         let code = self.read_lua_file(path)?;
-        self.exec_lua(&code)
+        self.call_lua(&code, args)
     }
 }
 

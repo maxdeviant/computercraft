@@ -3,13 +3,7 @@ use indoc::indoc;
 use minecraft::world::{Direction, Position};
 use pretty_assertions::assert_eq;
 
-fn script_root() -> String {
-    format!("{}/../..", env!("CARGO_MANIFEST_DIR"))
-}
-
-fn set_script_root(simulator: &mut Simulator) {
-    simulator.set_current_dir(script_root());
-}
+use crate::setup::set_script_root;
 
 #[test]
 fn test_move_functions() {
