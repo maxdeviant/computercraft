@@ -10,17 +10,17 @@ fn test_shaft_miner() {
     set_script_root(&mut simulator);
 
     simulator
-        .call_lua_file::<_, ()>("shaft_miner.lua", (1, 3))
+        .call_lua_file::<_, ()>("programs/shaft_miner.lua", (1, 3))
         .unwrap();
     assert_eq!(simulator.turtle().position, Position::new(2, -1, -2));
 
     simulator
-        .call_lua_file::<_, ()>("shaft_miner.lua", (1, 3))
+        .call_lua_file::<_, ()>("programs/shaft_miner.lua", (1, 3))
         .unwrap();
     assert_eq!(simulator.turtle().position, Position::new(0, -2, -0));
 
     simulator
-        .call_lua_file::<_, ()>("shaft_miner.lua", (2, 3))
+        .call_lua_file::<_, ()>("programs/shaft_miner.lua", (2, 3))
         .unwrap();
     assert_eq!(simulator.turtle().position, Position::new(0, -4, -0));
 }

@@ -18,7 +18,7 @@ sync computer_id:
     echo "Syncing scripts to computer {{computer_id}}..."
 
     # Copy main scripts
-    cp *.lua "$target_dir/"
+    cp programs/*.lua "$target_dir/"
 
     # Copy lib directory if it exists
     if [ -d "lib" ]; then
