@@ -186,7 +186,9 @@ impl Simulator {
                     let mut turtle = state.turtle.borrow_mut();
                     let mut world = state.world.borrow_mut();
 
-                    Ok(turtle.dig(TurtleSide::Right, &mut world).to_lua_result())
+                    Ok(turtle
+                        .dig_forward(TurtleSide::Right, &mut world)
+                        .to_lua_result())
                 }
             })?,
         )?;

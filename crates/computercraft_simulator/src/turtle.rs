@@ -180,7 +180,7 @@ impl Turtle {
         self.inspect(InteractDirection::Down, world)
     }
 
-    pub fn dig_in(
+    pub fn dig(
         &mut self,
         direction: InteractDirection,
         _side: TurtleSide,
@@ -210,16 +210,20 @@ impl Turtle {
         Ok(())
     }
 
-    pub fn dig(&mut self, side: TurtleSide, world: &mut World) -> Result<(), TurtleDigError> {
-        self.dig_in(InteractDirection::Forward, side, world)
+    pub fn dig_forward(
+        &mut self,
+        side: TurtleSide,
+        world: &mut World,
+    ) -> Result<(), TurtleDigError> {
+        self.dig(InteractDirection::Forward, side, world)
     }
 
     pub fn dig_up(&mut self, side: TurtleSide, world: &mut World) -> Result<(), TurtleDigError> {
-        self.dig_in(InteractDirection::Up, side, world)
+        self.dig(InteractDirection::Up, side, world)
     }
 
     pub fn dig_down(&mut self, side: TurtleSide, world: &mut World) -> Result<(), TurtleDigError> {
-        self.dig_in(InteractDirection::Down, side, world)
+        self.dig(InteractDirection::Down, side, world)
     }
 
     pub fn get_fuel_level(&self) -> u32 {
@@ -365,7 +369,7 @@ mod tests {
 
         assert!(turtle.detect(&world));
 
-        turtle.dig(TurtleSide::Right, &mut world).unwrap();
+        turtle.dig_forward(TurtleSide::Right, &mut world).unwrap();
         assert_eq!(
             world.get_block(Position::new(0, 0, -1)),
             blocks::AIR.clone()
