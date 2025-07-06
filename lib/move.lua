@@ -1,6 +1,8 @@
+local std = require("std")
+
 local move = {}
 
--- Direction enum
+--- A cardinal direction.
 local Direction = {
     NORTH = 0,
     EAST = 1,
@@ -12,36 +14,42 @@ local Direction = {
 ---
 --- @param n number
 function move.forward(n)
-    for _ = 1, n do
-        turtle.forward()
-    end
+    std.times(n, turtle.forward)
 end
 
 --- Moves the turtle backwards by *n* blocks.
 ---
 --- @param n number
 function move.back(n)
-    for _ = 1, n do
-        turtle.back()
-    end
+    std.times(n, turtle.back)
 end
 
 --- Moves the turtle up by *n* blocks.
 ---
 --- @param n number
 function move.up(n)
-    for _ = 1, n do
-        turtle.up()
-    end
+    std.times(n, turtle.up)
 end
 
 --- Moves the turtle down by *n* blocks.
 ---
 --- @param n number
 function move.down(n)
-    for _ = 1, n do
-        turtle.down()
-    end
+    std.times(n, turtle.down)
+end
+
+--- Turns the turtle 90º to the left *n* times.
+---
+--- @param n number
+function move.turn_left(n)
+    std.times(n, turtle.turnLeft)
+end
+
+--- Turns the turtle 90º to the right *n* times.
+---
+--- @param n number
+function move.turn_right(n)
+    std.times(n, turtle.turnRight)
 end
 
 --- Traverses a plane with the specified width and height, invoking the provided action at each block.
@@ -97,15 +105,9 @@ function move.traverse_circle(diameter, filled, action)
         local left_turns = (current_facing - target_facing) % 4
 
         if right_turns <= left_turns then
-            -- Turn right
-            for _ = 1, right_turns do
-                turtle.turnRight()
-            end
+            move.turn_right(right_turns)
         else
-            -- Turn left
-            for _ = 1, left_turns do
-                turtle.turnLeft()
-            end
+            move.turn_left(left_turns)
         end
 
         current_facing = target_facing
@@ -119,27 +121,19 @@ function move.traverse_circle(diameter, filled, action)
         -- Move horizontally first
         if dx > 0 then
             face_direction(Direction.EAST)
-            for _ = 1, dx do
-                turtle.forward()
-            end
+            move.forward(dx)
         elseif dx < 0 then
             face_direction(Direction.WEST)
-            for _ = 1, -dx do
-                turtle.forward()
-            end
+            move.forward(-dx)
         end
 
         -- Move vertically
         if dy > 0 then
             face_direction(Direction.NORTH)
-            for _ = 1, dy do
-                turtle.forward()
-            end
+            move.forward(dy)
         elseif dy < 0 then
             face_direction(Direction.SOUTH)
-            for _ = 1, -dy do
-                turtle.forward()
-            end
+            move.forward(-dy)
         end
 
         current_x = target_x
@@ -160,7 +154,7 @@ function move.traverse_circle(diameter, filled, action)
             end
 
             if should_include then
-                local angle = math.atan(x, y) -- atan2(x, y) for clockwise from north
+                local angle = math.atan(x, y) -- atan(x, y) for clockwise from north
                 angle = (angle + 2 * math.pi) % (2 * math.pi) -- Normalize to 0-2π
                 table.insert(points, { x = x, y = y, angle = angle })
             end
