@@ -1,6 +1,6 @@
-use minecraft::blocks;
 use minecraft::world::{Direction, Position, World};
 use minecraft::{BlockId, ItemStack};
+use minecraft::{ItemId, blocks};
 use serde::Serialize;
 use thiserror::Error;
 
@@ -77,8 +77,8 @@ pub struct Turtle {
     pub fuel: u32,
     pub inventory: [Option<ItemStack>; 16],
     pub selected_slot: usize,
-    pub left_upgrade: Option<String>,
-    pub right_upgrade: Option<String>,
+    pub left_upgrade: Option<ItemId>,
+    pub right_upgrade: Option<ItemId>,
 }
 
 impl Turtle {
@@ -96,7 +96,7 @@ impl Turtle {
         }
     }
 
-    pub fn set_upgrade(&mut self, side: TurtleSide, upgrade: Option<String>) {
+    pub fn set_upgrade(&mut self, side: TurtleSide, upgrade: Option<ItemId>) {
         match side {
             TurtleSide::Left => self.left_upgrade = upgrade,
             TurtleSide::Right => self.right_upgrade = upgrade,
@@ -222,17 +222,16 @@ impl Turtle {
             return Err(TurtleDigError::WrongTool);
         }
 
-        match upgrade.as_str() {
-            "minecraft:diamond_hoe" => {
-                if block.id != BlockId::GRASS_BLOCK && block.id != BlockId::DIRT {
-                    return Err(TurtleDigError::WrongTool);
-                }
+        const DIAMOND_HOE: ItemId = ItemId::new_static("minecraft:diamond_hoe");
 
-                world.set_block(target_position, blocks::FARMLAND.clone());
+        if *upgrade == DIAMOND_HOE {
+            if block.id != BlockId::GRASS_BLOCK && block.id != BlockId::DIRT {
+                return Err(TurtleDigError::WrongTool);
             }
-            _ => {
-                world.set_block(target_position, blocks::AIR.clone());
-            }
+
+            world.set_block(target_position, blocks::FARMLAND.clone());
+        } else {
+            world.set_block(target_position, blocks::AIR.clone());
         }
 
         Ok(())
@@ -396,7 +395,7 @@ mod tests {
         let mut turtle = Turtle::new(Position::new(0, 0, 0), Direction::North, TurtleKind::Normal);
         turtle.set_upgrade(
             TurtleSide::Right,
-            Some("minecraft:diamond_pickaxe".to_string()),
+            Some(ItemId::new_static("minecraft:diamond_pickaxe")),
         );
 
         assert!(turtle.detect(&world));

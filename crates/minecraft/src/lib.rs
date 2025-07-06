@@ -1,8 +1,10 @@
 mod block;
 pub mod blocks;
+mod item;
 pub mod world;
 
 pub use block::*;
+pub use item::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ItemStack {

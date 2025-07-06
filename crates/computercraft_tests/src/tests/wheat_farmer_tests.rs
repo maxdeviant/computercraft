@@ -1,7 +1,7 @@
 use computercraft_simulator::{Simulator, TurtleSide};
 use indoc::indoc;
 use minecraft::world::Position;
-use minecraft::{BlockId, blocks};
+use minecraft::{BlockId, ItemId, blocks};
 use pretty_assertions::assert_eq;
 
 use crate::setup::set_script_root;
@@ -19,9 +19,10 @@ fn test_wheat_farmer() {
         }
     }
 
-    simulator
-        .turtle_mut()
-        .set_upgrade(TurtleSide::Right, Some("minecraft:diamond_hoe".to_string()));
+    simulator.turtle_mut().set_upgrade(
+        TurtleSide::Right,
+        Some(ItemId::new_static("minecraft:diamond_hoe")),
+    );
     simulator.move_turtle_to(Position::new(0, 1, 0));
 
     simulator

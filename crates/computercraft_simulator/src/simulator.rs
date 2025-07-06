@@ -411,7 +411,7 @@ impl SimulatorState {
 
 #[cfg(test)]
 mod tests {
-    use minecraft::blocks;
+    use minecraft::{ItemId, blocks};
     use pretty_assertions::assert_eq;
 
     use super::*;
@@ -469,7 +469,7 @@ mod tests {
 
         simulator.turtle_mut().set_upgrade(
             TurtleSide::Right,
-            Some("minecraft:diamond_pickaxe".to_string()),
+            Some(ItemId::new_static("minecraft:diamond_pickaxe")),
         );
 
         simulator.set_block_at(simulator.turtle().looking_at(), blocks::AIR.clone());
