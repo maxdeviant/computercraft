@@ -17,6 +17,8 @@ sync computer_id:
 
     echo "Syncing scripts to computer {{computer_id}}..."
 
+    cp std.lua "$target_dir/"
+
     # Copy main scripts
     cp programs/*.lua "$target_dir/"
 
