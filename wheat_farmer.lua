@@ -44,8 +44,9 @@ local function harvest()
     turtle.digDown()
 end
 
-local function main()
-    local size = tonumber(arg[1])
+local function main(...)
+    local args = { ... }
+    local size = tonumber(args[1])
     if size == nil then
         print("Invalid size")
         return
@@ -69,4 +70,4 @@ local function main()
     end
 end
 
-main()
+main(...)

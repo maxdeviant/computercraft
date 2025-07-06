@@ -8,9 +8,10 @@ local function mine_shaft(depth, size)
     end
 end
 
-local function main()
-    local depth = arg[1]
-    local size = arg[2]
+local function main(...)
+    local args = { ... }
+    local depth = args[1]
+    local size = args[2]
 
     print("Starting shaft miner")
     print("Depth: " .. depth)
@@ -19,4 +20,4 @@ local function main()
     mine_shaft(tonumber(depth), tonumber(size))
 end
 
-main()
+main(...)
