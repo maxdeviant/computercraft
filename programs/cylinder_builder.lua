@@ -1,10 +1,21 @@
 local std = require("std")
 
+local inventory = require("lib.inventory")
 local move = require("lib.move")
 
 local cylinder_builder = {}
 
-local function place_block()
+--- @param building_item string
+local function place_block(building_item)
+    if turtle.getItemCount() == 0 then
+        if building_item and inventory.select_item(building_item) then
+            print("Switched to new stack of " .. building_item)
+        else
+            print("Error: No more " .. (building_item or "building materials") .. " available")
+            return
+        end
+    end
+
     if not turtle.placeDown() then
         print("Warning: Could not place block")
     end
@@ -15,6 +26,17 @@ end
 --- @param diameter number
 --- @param filled boolean
 function cylinder_builder.build(height, diameter, filled)
+    turtle.select(1)
+    local building_item = nil
+    local item_detail = turtle.getItemDetail()
+    if item_detail then
+        building_item = item_detail.name
+        print("Using building material: " .. building_item)
+    else
+        print("Error: No building materials found in slot 1")
+        return
+    end
+
     print("Building cylinder:")
     print("Height: " .. height)
     print("Diameter: " .. diameter)
@@ -25,7 +47,9 @@ function cylinder_builder.build(height, diameter, filled)
 
         print("Building layer " .. layer .. " of " .. height)
 
-        move.traverse_circle(diameter, filled, place_block)
+        move.traverse_circle(diameter, filled, function()
+            place_block(building_item)
+        end)
     end
 
     print("Cylinder construction complete!")
