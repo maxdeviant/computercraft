@@ -1,5 +1,13 @@
 local move = {}
 
+-- Direction enum
+local Direction = {
+    NORTH = 0,
+    EAST = 1,
+    SOUTH = 2,
+    WEST = 3,
+}
+
 --- Moves the turtle forward by *n* blocks.
 ---
 --- @param n number
@@ -76,14 +84,31 @@ function move.traverse_circle(diameter, filled, action)
     local radius = (diameter - 1) / 2
     local current_x = 0
     local current_y = 0
-    local current_facing = 0 -- 0=north, 1=east, 2=south, 3=west
+    local current_facing = Direction.NORTH
 
     -- Helper function to turn turtle to face a specific direction
     local function face_direction(target_facing)
-        while current_facing ~= target_facing do
-            turtle.turnRight()
-            current_facing = (current_facing + 1) % 4
+        if current_facing == target_facing then
+            return
         end
+
+        -- Calculate shortest rotation
+        local right_turns = (target_facing - current_facing) % 4
+        local left_turns = (current_facing - target_facing) % 4
+
+        if right_turns <= left_turns then
+            -- Turn right
+            for _ = 1, right_turns do
+                turtle.turnRight()
+            end
+        else
+            -- Turn left
+            for _ = 1, left_turns do
+                turtle.turnLeft()
+            end
+        end
+
+        current_facing = target_facing
     end
 
     -- Helper function to move turtle to a specific position
@@ -93,12 +118,12 @@ function move.traverse_circle(diameter, filled, action)
 
         -- Move horizontally first
         if dx > 0 then
-            face_direction(1) -- East
+            face_direction(Direction.EAST)
             for _ = 1, dx do
                 turtle.forward()
             end
         elseif dx < 0 then
-            face_direction(3) -- West
+            face_direction(Direction.WEST)
             for _ = 1, -dx do
                 turtle.forward()
             end
@@ -106,12 +131,12 @@ function move.traverse_circle(diameter, filled, action)
 
         -- Move vertically
         if dy > 0 then
-            face_direction(0) -- North
+            face_direction(Direction.NORTH)
             for _ = 1, dy do
                 turtle.forward()
             end
         elseif dy < 0 then
-            face_direction(2) -- South
+            face_direction(Direction.SOUTH)
             for _ = 1, -dy do
                 turtle.forward()
             end
@@ -156,7 +181,7 @@ function move.traverse_circle(diameter, filled, action)
 
     -- Return to center
     move_to_position(0, 0)
-    face_direction(0) -- Face north
+    face_direction(Direction.NORTH)
 end
 
 return move
