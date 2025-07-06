@@ -6,7 +6,8 @@ edition = "2024"
 
 [dependencies]
 minecraft.workspace = true
-mlua = { workspace = true, features = ["lua52", "vendored"] }
+mlua = { workspace = true, features = ["lua52", "serialize", "vendored"] }
+serde = { workspace = true, features = ["derive"] }
 thiserror.workspace = true
 
 [dev-dependencies]

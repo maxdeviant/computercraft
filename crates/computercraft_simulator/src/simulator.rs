@@ -4,10 +4,14 @@ use std::rc::Rc;
 
 use minecraft::Block;
 use minecraft::world::{Direction, Position, World};
-use mlua::Lua;
+use mlua::{Lua, LuaOptions, LuaSerdeExt, StdLib};
+use serde::Serialize;
 use thiserror::Error;
 
-use crate::{Turtle, TurtleDigError, TurtleKind, TurtleMoveError, TurtleSide};
+use crate::{
+    InspectData, Turtle, TurtleDigError, TurtleInspectError, TurtleKind, TurtleMoveError,
+    TurtleSide,
+};
 
 #[derive(Error, Debug)]
 pub enum SimulatorError {
@@ -26,7 +30,12 @@ pub struct Simulator {
 
 impl Simulator {
     pub fn new() -> SimulatorResult<Self> {
-        let lua = Lua::new();
+        let lua = {
+            let stdlib = StdLib::ALL_SAFE | StdLib::DEBUG;
+            let options = LuaOptions::default();
+
+            unsafe { Lua::unsafe_new_with(stdlib, options) }
+        };
 
         let mut this = Self {
             lua,
@@ -37,6 +46,10 @@ impl Simulator {
         this.init_turtle_api()?;
 
         Ok(this)
+    }
+
+    pub fn world(&self) -> std::cell::Ref<'_, World> {
+        self.state.world.borrow()
     }
 
     pub fn turtle(&self) -> std::cell::Ref<'_, Turtle> {
@@ -51,6 +64,12 @@ impl Simulator {
     pub fn set_block_at(&self, position: Position, block: Block) {
         let mut world = self.state.world.borrow_mut();
         world.set_block(position, block);
+    }
+
+    /// Moves the turtle to the given position.
+    pub fn move_turtle_to(&self, position: Position) {
+        let mut turtle = self.state.turtle.borrow_mut();
+        turtle.position = position;
     }
 
     fn init_require(&mut self) -> SimulatorResult<()> {
@@ -184,6 +203,17 @@ impl Simulator {
             })?,
         )?;
         turtle_table.set(
+            "select",
+            self.lua.create_function({
+                let state = self.state.clone();
+                move |_lua, slot: i32| {
+                    let mut turtle = state.turtle.borrow_mut();
+
+                    Ok(turtle.select(slot as usize))
+                }
+            })?,
+        )?;
+        turtle_table.set(
             "digDown",
             self.lua.create_function({
                 let state = self.state.clone();
@@ -194,6 +224,65 @@ impl Simulator {
                     Ok(turtle
                         .dig_down(TurtleSide::Right, &mut world)
                         .to_lua_result())
+                }
+            })?,
+        )?;
+        turtle_table.set(
+            "inspect",
+            self.lua.create_function({
+                let state = self.state.clone();
+                move |lua, ()| {
+                    let turtle = state.turtle.borrow();
+                    let world = state.world.borrow();
+
+                    let (has_block, data) = turtle.inspect_forward(&world).to_lua_result();
+
+                    Ok((has_block, lua.to_value(&data)?))
+                }
+            })?,
+        )?;
+        turtle_table.set(
+            "inspectUp",
+            self.lua.create_function({
+                let state = self.state.clone();
+                move |lua, ()| {
+                    let turtle = state.turtle.borrow();
+                    let world = state.world.borrow();
+
+                    let (has_block, data) = turtle.inspect_up(&world).to_lua_result();
+
+                    Ok((has_block, lua.to_value(&data)?))
+                }
+            })?,
+        )?;
+        turtle_table.set(
+            "inspectDown",
+            self.lua.create_function({
+                let state = self.state.clone();
+                move |lua, ()| {
+                    let turtle = state.turtle.borrow();
+                    let world = state.world.borrow();
+
+                    let (has_block, data) = turtle.inspect_down(&world).to_lua_result();
+
+                    Ok((has_block, lua.to_value(&data)?))
+                }
+            })?,
+        )?;
+        turtle_table.set(
+            "getItemDetail",
+            self.lua.create_function({
+                let state = self.state.clone();
+                move |lua, (slot, detailed): (Option<i32>, bool)| {
+                    let turtle = state.turtle.borrow();
+
+                    let slot = slot
+                        .map(|slot| slot as usize)
+                        .unwrap_or(turtle.selected_slot);
+
+                    let detail = turtle.get_item_detail(slot, detailed);
+
+                    detail.map(|detail| lua.to_value(&detail)).transpose()
                 }
             })?,
         )?;
@@ -252,11 +341,11 @@ impl Simulator {
     }
 }
 
-pub trait TurtleResultExt {
-    fn to_lua_result(self) -> (bool, Option<String>);
+pub trait TurtleResultExt<T> {
+    fn to_lua_result(self) -> (bool, T);
 }
 
-impl<T> TurtleResultExt for Result<T, TurtleMoveError> {
+impl TurtleResultExt<Option<String>> for Result<(), TurtleMoveError> {
     fn to_lua_result(self) -> (bool, Option<String>) {
         match self {
             Ok(_) => (true, None),
@@ -265,7 +354,22 @@ impl<T> TurtleResultExt for Result<T, TurtleMoveError> {
     }
 }
 
-impl<T> TurtleResultExt for Result<T, TurtleDigError> {
+#[derive(Serialize)]
+enum InspectDataOrReason {
+    Data(InspectData),
+    Reason(String),
+}
+
+impl TurtleResultExt<InspectDataOrReason> for Result<InspectData, TurtleInspectError> {
+    fn to_lua_result(self) -> (bool, InspectDataOrReason) {
+        match self {
+            Ok(data) => (true, InspectDataOrReason::Data(data)),
+            Err(err) => (false, InspectDataOrReason::Reason(err.to_string())),
+        }
+    }
+}
+
+impl TurtleResultExt<Option<String>> for Result<(), TurtleDigError> {
     fn to_lua_result(self) -> (bool, Option<String>) {
         match self {
             Ok(_) => (true, None),

@@ -1,5 +1,6 @@
 use minecraft::world::{Direction, Position, World};
 use minecraft::{Block, ItemStack};
+use serde::Serialize;
 use thiserror::Error;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -38,6 +39,14 @@ pub enum TurtleMoveError {
     OutOfFuel,
 }
 
+#[derive(Debug, Serialize)]
+pub struct InspectData {
+    pub name: String,
+}
+
+#[derive(Error, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TurtleInspectError {}
+
 #[derive(Error, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TurtleDigError {
     #[error("Nothing to dig here")]
@@ -46,6 +55,12 @@ pub enum TurtleDigError {
     UnbreakableBlock,
     #[error("Cannot break block with this tool")]
     WrongTool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ItemDetail {
+    pub name: String,
+    pub count: u32,
 }
 
 #[derive(Debug)]
@@ -142,6 +157,28 @@ impl Turtle {
         world.is_solid(target_position)
     }
 
+    pub fn inspect(
+        &self,
+        _direction: InteractDirection,
+        _world: &World,
+    ) -> Result<InspectData, TurtleInspectError> {
+        Ok(InspectData {
+            name: "minecraft:wheat".to_string(),
+        })
+    }
+
+    pub fn inspect_forward(&self, world: &World) -> Result<InspectData, TurtleInspectError> {
+        self.inspect(InteractDirection::Forward, world)
+    }
+
+    pub fn inspect_up(&self, world: &World) -> Result<InspectData, TurtleInspectError> {
+        self.inspect(InteractDirection::Up, world)
+    }
+
+    pub fn inspect_down(&self, world: &World) -> Result<InspectData, TurtleInspectError> {
+        self.inspect(InteractDirection::Down, world)
+    }
+
     pub fn dig_in(
         &mut self,
         direction: InteractDirection,
@@ -227,6 +264,19 @@ impl Turtle {
             .as_ref()
             .map(|stack| stack.space_left())
             .unwrap_or(64)
+    }
+
+    pub fn get_item_detail(&self, slot: usize, _detailed: bool) -> Option<ItemDetail> {
+        if slot >= 16 {
+            return None;
+        }
+
+        let stack = self.inventory[slot].as_ref()?;
+
+        Some(ItemDetail {
+            name: stack.name.clone(),
+            count: stack.count,
+        })
     }
 }
 

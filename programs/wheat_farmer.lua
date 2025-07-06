@@ -3,6 +3,8 @@ local std = require("std")
 local inventory = require("lib.inventory")
 local move = require("lib.move")
 
+local wheat_farmer = {}
+
 local wheat = "minecraft:wheat"
 local wheat_seeds = "minecraft:wheat_seeds"
 
@@ -44,6 +46,21 @@ local function harvest()
     turtle.digDown()
 end
 
+--- @param size number
+function wheat_farmer.do_turn(size)
+    move.traverse_plane(size, size, function()
+        if is_wheat_grown() then
+            harvest()
+            plant_wheat()
+        elseif is_above_wheat() then
+            -- Skip over it.
+        else
+            till_soil()
+            plant_wheat()
+        end
+    end)
+end
+
 local function main(...)
     local args = { ... }
     local size = tonumber(args[1])
@@ -56,18 +73,12 @@ local function main(...)
     print("Size: " .. size .. "x" .. size)
 
     while true do
-        move.traverse_plane(size, size, function()
-            if is_wheat_grown() then
-                harvest()
-                plant_wheat()
-            elseif is_above_wheat() then
-                -- Skip over it.
-            else
-                till_soil()
-                plant_wheat()
-            end
-        end)
+        wheat_farmer.do_turn(size)
     end
 end
 
-main(...)
+if std.is_main() then
+    main(...)
+end
+
+return wheat_farmer

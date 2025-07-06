@@ -9,4 +9,5 @@ minecraft = { path = "crates/minecraft" }
 indoc = "2.0.6"
 mlua = "0.9"
 pretty_assertions = "1.4.1"
+serde = "1.0"
 thiserror = "1.0"
